@@ -8,6 +8,8 @@
 
     <uses-permission android:name="android.permission.RECEIVE_SMS" />
     <uses-permission android:name="android.permission.READ_SMS" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
     <application
         android:allowBackup="true"
@@ -20,13 +22,29 @@
         android:theme="@style/Theme.HotelRecommendation"
         tools:targetApi="31">
         <activity
+            android:name=".RequestVerificationActivity"
+            android:exported="false" />
+
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyAyVuVNKfC7lurO4R4zF3REQ0KYy_8EH2k" />
+
+        <activity
+            android:name=".LocationSelectionActivity"
+            android:label="Location Selection Activity"
+            android:parentActivityName=".recommendation">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".recommendation" />
+        </activity>
+        <activity
             android:name=".recommendation"
             android:exported="false" />
         <activity
             android:name=".ProfileActivity"
             android:exported="false"
             android:screenOrientation="portrait"
-            android:windowSoftInputMode="adjustResize"/>
+            android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".VerifyOTPActivity"
             android:exported="false"
@@ -37,11 +55,11 @@
             android:exported="true"
             android:screenOrientation="portrait"
             android:windowSoftInputMode="adjustResize">
-        <intent-filter>
-            <action android:name="android.intent.action.MAIN" />
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
 
-            <category android:name="android.intent.category.LAUNCHER" />
-        </intent-filter>
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
         </activity>
         <activity
             android:name=".MainActivity"

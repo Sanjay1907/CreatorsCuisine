@@ -1,10 +1,16 @@
 package com.example.hotelrecommendation;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -14,7 +20,9 @@ import com.google.firebase.database.ValueEventListener;
 
 public class MainActivity extends AppCompatActivity {
 
-    private Button btnProfile, btnAddRecommendation, btnLogout;
+    private static final int LOCATION_PERMISSION_REQUEST_CODE = 1; // Use a different code from the previous activity
+
+    private Button btnProfile, btnAddRecommendation, btnRequestVerification, btnLogout;
     private FirebaseAuth mAuth;
     private DatabaseReference databaseReference;
 
@@ -28,6 +36,7 @@ public class MainActivity extends AppCompatActivity {
                 .child(mAuth.getCurrentUser().getUid()); // Get current user's ID
         btnProfile = findViewById(R.id.btnProfile);
         btnAddRecommendation = findViewById(R.id.btnAddRecommendation);
+        btnRequestVerification = findViewById(R.id.btnRequestVerification);
         btnLogout = findViewById(R.id.btnLogout);
 
         // Check if the "name" field exists in the Realtime Database
@@ -48,6 +57,14 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        // Request location permission if not granted
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    LOCATION_PERMISSION_REQUEST_CODE);
+        }
+
         // Set click listeners for the buttons
         btnProfile.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -65,6 +82,14 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        btnRequestVerification.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(MainActivity.this, RequestVerificationActivity.class);
+                startActivity(intent);
+            }
+        });
+
         btnLogout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -74,5 +99,19 @@ public class MainActivity extends AppCompatActivity {
                 finish();
             }
         });
+    }
+
+    // Handle the result of the permission request
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Location permission granted, you can proceed with your app logic
+            } else {
+                // Location permission denied, handle it as needed
+                // You can show a message to the user or disable location-related features
+            }
+        }
     }
 }

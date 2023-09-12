@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="document_type_prompt">Select Document Type</string>
+    <string-array name="document_types">
+        <item>Aadhaar card</item>
+        <item>Pan Card</item>
+        <item>Driving Licence</item>
+        <item>Other Govt Issued Documents</item>
+    </string-array>
+
+</resources>

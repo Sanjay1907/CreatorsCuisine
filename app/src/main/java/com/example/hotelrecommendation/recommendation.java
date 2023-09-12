@@ -14,6 +14,12 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapView;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
@@ -22,13 +28,11 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
-import com.example.hotelrecommendation.Recommendation1;
 
-public class recommendation extends AppCompatActivity {
+public class recommendation extends AppCompatActivity implements OnMapReadyCallback {
 
     private static final int PICK_IMAGE_REQUEST = 1;
     private static final int PICK_LOCATION_REQUEST = 2;
-
     private ImageView profileImage;
     private Button btnChooseImage, btnAddLocation, btnAddRecommendation;
     private EditText etName, etLink, etAddress, etContactNumber, etFood;
@@ -37,7 +41,9 @@ public class recommendation extends AppCompatActivity {
     private FirebaseAuth mAuth;
     private DatabaseReference databaseReference;
     private StorageReference storageReference;
-    private TextView tvLocation; // Add this TextView for displaying the selected location
+    private TextView txtLocation; // TextView for displaying the selected location
+    private MapView mapView;
+    private GoogleMap googleMap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,7 +60,10 @@ public class recommendation extends AppCompatActivity {
         ratingBar = findViewById(R.id.ratingBar);
         btnAddLocation = findViewById(R.id.btnlocation);
         btnAddRecommendation = findViewById(R.id.btnadd);
-        tvLocation = findViewById(R.id.txtLocation); // Initialize the TextView
+        txtLocation = findViewById(R.id.txtLocation); // Initialize the TextView
+        mapView = findViewById(R.id.mapView);
+        mapView.onCreate(savedInstanceState);
+        mapView.getMapAsync(this);
 
         mAuth = FirebaseAuth.getInstance();
         databaseReference = FirebaseDatabase.getInstance().getReference("Creators");
@@ -70,19 +79,9 @@ public class recommendation extends AppCompatActivity {
         btnAddLocation.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Create an intent to open Google Maps
-                Uri gmmIntentUri = Uri.parse("geo:0,0?q=");
-                Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
-                mapIntent.setPackage("com.google.android.apps.maps"); // Specify the package name of Google Maps
-
-                // Check if Google Maps is available on the device
-                if (mapIntent.resolveActivity(getPackageManager()) != null) {
-                    // Start Google Maps activity and wait for a result
-                    startActivityForResult(mapIntent, PICK_LOCATION_REQUEST);
-                } else {
-                    // Handle the case where Google Maps is not installed
-                    Toast.makeText(recommendation.this, "Google Maps is not installed on your device.", Toast.LENGTH_SHORT).show();
-                }
+                // Create an intent to open the LocationSelectionActivity
+                Intent locationIntent = new Intent(recommendation.this, LocationSelectionActivity.class);
+                startActivityForResult(locationIntent, PICK_LOCATION_REQUEST);
             }
         });
 
@@ -113,9 +112,19 @@ public class recommendation extends AppCompatActivity {
                 // Handle the selected location data here
                 if (data != null) {
                     // You can retrieve the selected location information from the data Intent
-                    String selectedLocation = data.getDataString();
+                    double latitude = data.getDoubleExtra("latitude", 0.0);
+                    double longitude = data.getDoubleExtra("longitude", 0.0);
+
                     // Display the selected location in the TextView
-                    tvLocation.setText(selectedLocation);
+                    txtLocation.setText("Latitude: " + latitude + ", Longitude: " + longitude);
+
+                    // Update the map marker
+                    if (googleMap != null) {
+                        googleMap.clear();
+                        LatLng locationLatLng = new LatLng(latitude, longitude);
+                        googleMap.addMarker(new MarkerOptions().position(locationLatLng).title("Hotel Location"));
+                        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(locationLatLng, 15));
+                    }
                 }
             } else if (resultCode == RESULT_CANCELED) {
                 // Handle the case where the user canceled the location selection
@@ -130,7 +139,7 @@ public class recommendation extends AppCompatActivity {
         final String address = etAddress.getText().toString().trim();
         final String contactNumber = etContactNumber.getText().toString().trim();
         final String food = etFood.getText().toString().trim();
-        final String location = tvLocation.getText().toString().trim(); // Get the location from the TextView
+        final String location = txtLocation.getText().toString().trim(); // Get the location from the TextView
         final float rating = ratingBar.getRating();
 
         if (name.isEmpty() || link.isEmpty() || address.isEmpty() || contactNumber.isEmpty() || food.isEmpty() || location.isEmpty() || imageUri == null) {
@@ -195,8 +204,39 @@ public class recommendation extends AppCompatActivity {
         etAddress.setText("");
         etContactNumber.setText("");
         etFood.setText("");
-        tvLocation.setText(""); // Clear the location TextView
+        txtLocation.setText(""); // Clear the location TextView
         ratingBar.setRating(0);
         profileImage.setImageResource(R.drawable.default_profile_image);
+        googleMap.clear(); // Clear the map marker
+    }
+
+    @Override
+    public void onMapReady(GoogleMap map) {
+        googleMap = map;
+        googleMap.getUiSettings().setAllGesturesEnabled(false); // Disable map interactions
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mapView.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        mapView.onPause();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mapView.onDestroy();
+    }
+
+    @Override
+    public void onLowMemory() {
+        super.onLowMemory();
+        mapView.onLowMemory();
     }
 }

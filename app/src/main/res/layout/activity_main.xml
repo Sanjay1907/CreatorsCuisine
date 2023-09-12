@@ -18,6 +18,12 @@
         android:text="Add Recommendation" />
 
     <Button
+        android:id="@+id/btnRequestVerification"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Request Verification" />
+
+    <Button
         android:id="@+id/btnLogout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

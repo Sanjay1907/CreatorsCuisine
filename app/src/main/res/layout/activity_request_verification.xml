@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp"
+    tools:context=".RequestVerificationActivity">
+
+    <Spinner
+        android:id="@+id/spinnerDocumentType"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="8dp"
+        android:background="@android:drawable/btn_dropdown"
+        android:prompt="@array/document_types"
+        android:spinnerMode="dropdown"/>
+
+    <Button
+        android:id="@+id/btnChooseDocument"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/spinnerDocumentType"
+        android:layout_centerHorizontal="true"
+        android:text="Choose Document (PDF)"
+        android:layout_marginTop="8dp" />
+
+    <TextView
+        android:id="@+id/tvSelectedDocument"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/btnChooseDocument"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="8dp"
+        android:text=""
+        android:textSize="16sp"
+        android:textStyle="italic" />
+
+    <Button
+        android:id="@+id/btnRequestVerification"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/tvSelectedDocument"
+        android:layout_centerHorizontal="true"
+        android:text="Request Verification"
+        android:layout_marginTop="16dp" />
+
+</RelativeLayout>
