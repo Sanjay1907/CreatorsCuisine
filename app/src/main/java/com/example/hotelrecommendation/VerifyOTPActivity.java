@@ -22,6 +22,8 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.PhoneAuthCredential;
 import com.google.firebase.auth.PhoneAuthProvider;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.concurrent.TimeUnit;
 
@@ -90,6 +92,10 @@ public class VerifyOTPActivity extends AppCompatActivity {
                                     progressBar.setVisibility(View.GONE);
                                     verifyOTp.setVisibility(View.VISIBLE);
                                     if (task.isSuccessful()) {
+                                        // Phone number verification successful.
+                                        // Save the phone number in the Realtime Database.
+                                        savePhoneNumberInDatabase(FirebaseAuth.getInstance().getCurrentUser().getUid());
+
                                         Intent intent = new Intent(getApplicationContext(), MainActivity.class);
                                         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                                         startActivity(intent);
@@ -258,6 +264,15 @@ public class VerifyOTPActivity extends AppCompatActivity {
 
             }
         });
+    }
+
+    private void savePhoneNumberInDatabase(String userId) {
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Creators");
+        DatabaseReference userReference = databaseReference.child(userId);
+
+        String phoneNumber = getIntent().getStringExtra("mobile");
+
+        userReference.child("phoneNumber").setValue(phoneNumber);
     }
 
     @Override

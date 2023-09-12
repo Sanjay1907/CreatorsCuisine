@@ -12,6 +12,8 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.google.firebase.FirebaseException;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.PhoneAuthCredential;
 import com.google.firebase.auth.PhoneAuthProvider;
 
@@ -22,6 +24,14 @@ public class SendOTPActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // Check if user is already signed in
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            // User is already signed in, open the dashboard activity
+            startActivity(new Intent(SendOTPActivity.this, MainActivity.class));
+            finish();
+            return;
+        }
         setContentView(R.layout.activity_send_otpactivity);
 
         final EditText inputmobile = findViewById(R.id.inputmobile);
