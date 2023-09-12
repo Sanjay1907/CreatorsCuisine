@@ -22,6 +22,9 @@
         android:theme="@style/Theme.HotelRecommendation"
         tools:targetApi="31">
         <activity
+            android:name=".viewrecommendation"
+            android:exported="false" />
+        <activity
             android:name=".RequestVerificationActivity"
             android:exported="false" />
 

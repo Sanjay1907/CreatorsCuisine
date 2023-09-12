@@ -1,6 +1,7 @@
 package com.example.hotelrecommendation;
 
 import android.content.Intent;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
@@ -16,11 +17,16 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
+
+import java.io.File;
 import java.util.Objects;
 
 public class RequestVerificationActivity extends AppCompatActivity {
@@ -33,6 +39,7 @@ public class RequestVerificationActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
     private DatabaseReference databaseReference;
     private StorageReference storageReference;
+    private boolean formSubmitted = false; // To track if the form has been submitted
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,6 +57,31 @@ public class RequestVerificationActivity extends AppCompatActivity {
         btnRequestVerification = findViewById(R.id.btnRequestVerification);
         tvSelectedDocument = findViewById(R.id.tvSelectedDocument);
 
+        // Check if the form has already been submitted
+        checkFormSubmission();
+
+        // If the form has been submitted, disable form fields
+        if (formSubmitted) {
+            spinnerDocumentType.setEnabled(false);
+            btnChooseDocument.setEnabled(false);
+            btnRequestVerification.setEnabled(false);
+        } else {
+            // If the form has not been submitted, enable form fields
+            btnChooseDocument.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    selectPDF();
+                }
+            });
+
+            btnRequestVerification.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    uploadPDF();
+                }
+            });
+        }
+
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
                 R.array.document_types, android.R.layout.simple_spinner_item);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -66,18 +98,38 @@ public class RequestVerificationActivity extends AppCompatActivity {
                 // Do nothing
             }
         });
+    }
 
-        btnChooseDocument.setOnClickListener(new View.OnClickListener() {
+    // Check if the form has already been submitted
+    private void checkFormSubmission() {
+        final String userId = mAuth.getCurrentUser().getUid();
+        DatabaseReference userReference = databaseReference.child(userId);
+
+        userReference.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onClick(View v) {
-                selectPDF();
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    // The "request_verification" child node exists, indicating the form has been submitted
+                    formSubmitted = true;
+                    spinnerDocumentType.setEnabled(false);
+                    btnChooseDocument.setEnabled(false);
+                    btnRequestVerification.setEnabled(false);
+
+                    // Retrieve and display details from the child node
+                    String documentFileName = dataSnapshot.child("documentFileName").getValue(String.class);
+                    String documentFileType = dataSnapshot.child("documentType").getValue(String.class);
+
+                    // Update the TextView with the submitted document details
+                    tvSelectedDocument.setText("Already Submitted the Request.\nUploaded Document: " + documentFileName+"\nUploaded Document Type: "+ documentFileType);
+                } else {
+                    // The "request_verification" child node doesn't exist, indicating the form has not been submitted
+                    formSubmitted = false;
+                }
             }
-        });
 
-        btnRequestVerification.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
-                uploadPDF();
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                // Handle database error
             }
         });
     }
@@ -95,8 +147,28 @@ public class RequestVerificationActivity extends AppCompatActivity {
 
         if (requestCode == PICK_PDF_REQUEST && resultCode == RESULT_OK && data != null && data.getData() != null) {
             pdfUri = data.getData();
-            tvSelectedDocument.setText("Selected Document: " + pdfUri.getLastPathSegment());
+            String documentFileName = getFileNameFromUri(pdfUri);
+
+            // Update the TextView with the selected document's file name
+            tvSelectedDocument.setText("Selected Document: " + documentFileName);
         }
+    }
+
+    // Get the file name from the Uri
+    private String getFileNameFromUri(Uri uri) {
+        String fileName = "";
+        if (uri.getScheme().equals("content")) {
+            String[] projection = {android.provider.MediaStore.Images.ImageColumns.DISPLAY_NAME};
+            Cursor cursor = getContentResolver().query(uri, projection, null, null, null);
+            if (cursor != null && cursor.moveToFirst()) {
+                int columnIndex = cursor.getColumnIndex(android.provider.MediaStore.Images.ImageColumns.DISPLAY_NAME);
+                fileName = cursor.getString(columnIndex);
+                cursor.close();
+            }
+        } else if (uri.getScheme().equals("file")) {
+            fileName = new File(uri.getPath()).getName();
+        }
+        return fileName;
     }
 
     private void uploadPDF() {
@@ -116,7 +188,7 @@ public class RequestVerificationActivity extends AppCompatActivity {
                                 @Override
                                 public void onSuccess(Uri downloadUri) {
                                     String documentUrl = downloadUri.toString();
-                                    saveDocumentData(userId, documentType, documentUrl);
+                                    saveDocumentData(userId, documentType, documentUrl, fileName);
                                 }
                             });
                         }
@@ -134,9 +206,10 @@ public class RequestVerificationActivity extends AppCompatActivity {
         }
     }
 
-    private void saveDocumentData(String userId, String documentType, String documentUrl) {
+    private void saveDocumentData(String userId, String documentType, String documentUrl, String documentFileName) {
         DatabaseReference userReference = databaseReference.child(userId);
         userReference.child("documentType").setValue(documentType);
+        userReference.child("documentFileName").setValue(documentFileName);
         userReference.child("documentUrl").setValue(documentUrl);
 
         Toast.makeText(RequestVerificationActivity.this,
