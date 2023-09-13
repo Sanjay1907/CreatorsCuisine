@@ -1,8 +1,11 @@
 package com.example.hotelrecommendation;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
+import android.location.Location;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -10,12 +13,18 @@ import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.tasks.OnSuccessListener;
+
 import java.io.IOException;
 import java.util.List;
 
@@ -72,23 +81,39 @@ public class LocationSelectionActivity extends AppCompatActivity implements OnMa
 
         // Check if a location is already confirmed
         if (!isLocationConfirmed) {
-            // Set the initial camera position to the current location
-            mMap.setOnMapLoadedCallback(new GoogleMap.OnMapLoadedCallback() {
-                @Override
-                public void onMapLoaded() {
-                    mMap.setMyLocationEnabled(true);
+            // Enable the My Location layer if it's not already enabled
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                mMap.setMyLocationEnabled(true);
+            }
 
-                    // Customize the position of the My Location button
-                    View locationButton = ((View) mapFragment.getView().findViewById(Integer.parseInt("1")).
-                            getParent()).findViewById(Integer.parseInt("2"));
-                    RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams)
-                            locationButton.getLayoutParams();
-                    // Position the button on the bottom center
-                    layoutParams.addRule(RelativeLayout.ALIGN_PARENT_TOP, 0);
-                    layoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
-                    layoutParams.setMargins(0, 0, 30, 30); // Adjust margins as needed
-                }
-            });
+            // Customize the position of the My Location button
+            View locationButton = ((View) mapFragment.getView().findViewById(Integer.parseInt("1")).
+                    getParent()).findViewById(Integer.parseInt("2"));
+            RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams)
+                    locationButton.getLayoutParams();
+            // Position the button on the bottom center
+            layoutParams.addRule(RelativeLayout.ALIGN_PARENT_TOP, 0);
+            layoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
+            layoutParams.setMargins(0, 0, 30, 30); // Adjust margins as needed
+
+            // Set a default zoom level for the user's current location
+            mMap.moveCamera(CameraUpdateFactory.zoomTo(15));
+
+            // Use FusedLocationProviderClient to get the user's current location
+            FusedLocationProviderClient fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+            fusedLocationClient.getLastLocation()
+                    .addOnSuccessListener(this, new OnSuccessListener<Location>() {
+                        @Override
+                        public void onSuccess(Location location) {
+                            if (location != null) {
+                                // Get the current location coordinates
+                                LatLng currentLocation = new LatLng(location.getLatitude(), location.getLongitude());
+
+                                // Set the map's camera position to the current location
+                                mMap.moveCamera(CameraUpdateFactory.newLatLng(currentLocation));
+                            }
+                        }
+                    });
         }
 
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
@@ -110,6 +135,7 @@ public class LocationSelectionActivity extends AppCompatActivity implements OnMa
             }
         });
     }
+
 
     public void searchLocation() {
         EditText etLocationQuery = findViewById(R.id.etLocationQuery);
