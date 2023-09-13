@@ -2,6 +2,8 @@ package com.example.hotelrecommendation;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.location.Address;
+import android.location.Geocoder;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
@@ -29,6 +31,10 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
+import java.io.IOException;
+import java.util.List;
+import java.util.Locale;
+
 public class recommendation extends AppCompatActivity implements OnMapReadyCallback {
 
     private static final int PICK_IMAGE_REQUEST = 1;
@@ -41,9 +47,12 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
     private FirebaseAuth mAuth;
     private DatabaseReference databaseReference;
     private StorageReference storageReference;
-    private TextView txtLocation; // TextView for displaying the selected location
+    private TextView txtLocation;
     private MapView mapView;
     private GoogleMap googleMap;
+    private double selectedLatitude;
+    private double selectedLongitude;
+    private String selectedLocationName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,7 +69,7 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
         ratingBar = findViewById(R.id.ratingBar);
         btnAddLocation = findViewById(R.id.btnlocation);
         btnAddRecommendation = findViewById(R.id.btnadd);
-        txtLocation = findViewById(R.id.txtLocation); // Initialize the TextView
+        txtLocation = findViewById(R.id.txtLocation);
         mapView = findViewById(R.id.mapView);
         mapView.onCreate(savedInstanceState);
         mapView.getMapAsync(this);
@@ -79,7 +88,6 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
         btnAddLocation.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Create an intent to open the LocationSelectionActivity
                 Intent locationIntent = new Intent(recommendation.this, LocationSelectionActivity.class);
                 startActivityForResult(locationIntent, PICK_LOCATION_REQUEST);
             }
@@ -109,29 +117,34 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
             profileImage.setImageURI(imageUri);
         } else if (requestCode == PICK_LOCATION_REQUEST) {
             if (resultCode == RESULT_OK) {
-                // Handle the selected location data here
                 if (data != null) {
-                    // You can retrieve the selected location information from the data Intent
-                    double latitude = data.getDoubleExtra("latitude", 0.0);
-                    double longitude = data.getDoubleExtra("longitude", 0.0);
+                    selectedLatitude = data.getDoubleExtra("latitude", 0.0);
+                    selectedLongitude = data.getDoubleExtra("longitude", 0.0);
 
-                    // Display the selected location in the TextView
-                    txtLocation.setText("Latitude: " + latitude + ", Longitude: " + longitude);
+                    // Use reverse geocoding to get the location name
+                    selectedLocationName = getLocationName(selectedLatitude, selectedLongitude);
 
-                    // Update the map marker
+                    // Fill the location name in the EditText
+                    if (selectedLocationName != null) {
+                        etAddress.setText(selectedLocationName);
+                    }
+
+                    // Display latitude and longitude in the TextView
+                    txtLocation.setText("Latitude: " + selectedLatitude + ", Longitude: " + selectedLongitude);
+
                     if (googleMap != null) {
                         googleMap.clear();
-                        LatLng locationLatLng = new LatLng(latitude, longitude);
+                        LatLng locationLatLng = new LatLng(selectedLatitude, selectedLongitude);
                         googleMap.addMarker(new MarkerOptions().position(locationLatLng).title("Hotel Location"));
                         googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(locationLatLng, 15));
                     }
                 }
             } else if (resultCode == RESULT_CANCELED) {
-                // Handle the case where the user canceled the location selection
                 Toast.makeText(this, "Location selection canceled", Toast.LENGTH_SHORT).show();
             }
         }
     }
+
 
     private void addRecommendation() {
         final String name = etName.getText().toString().trim();
@@ -139,7 +152,7 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
         final String address = etAddress.getText().toString().trim();
         final String contactNumber = etContactNumber.getText().toString().trim();
         final String food = etFood.getText().toString().trim();
-        final String location = txtLocation.getText().toString().trim(); // Get the location from the TextView
+        final String location = txtLocation.getText().toString().trim();
         final float rating = ratingBar.getRating();
 
         if (name.isEmpty() || link.isEmpty() || address.isEmpty() || contactNumber.isEmpty() || food.isEmpty() || location.isEmpty() || imageUri == null) {
@@ -153,7 +166,6 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
 
         final String currentUserId = mAuth.getCurrentUser().getUid();
 
-        // Use the hotel name as the image name with the user's UID appended
         final StorageReference imageReference = storageReference.child(name + "_" + currentUserId + ".jpg");
 
         imageReference.putFile(imageUri)
@@ -167,10 +179,8 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
                                     if (downloadTask.isSuccessful()) {
                                         String imageUrl = downloadTask.getResult().toString();
 
-                                        // Create a recommendation object
                                         Recommendation1 recommendation = new Recommendation1(name, link, address, contactNumber, food, location, rating, imageUrl);
 
-                                        // Push the recommendation to Firebase Realtime Database under the "recommendation" child node of the user's ID
                                         databaseReference.child(currentUserId).child("recommendation").push().setValue(recommendation)
                                                 .addOnCompleteListener(new OnCompleteListener<Void>() {
                                                     @Override
@@ -179,7 +189,7 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
                                                         if (addTask.isSuccessful()) {
                                                             Toast.makeText(recommendation.this, "Recommendation added successfully", Toast.LENGTH_SHORT).show();
                                                             Intent intent = new Intent(recommendation.this, MainActivity.class);
-                                                            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP); // Clear the back stack
+                                                            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                                                             startActivity(intent);
                                                             finish();
                                                         } else {
@@ -201,22 +211,43 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
                 });
     }
 
+    private String getLocationName(double latitude, double longitude) {
+        Geocoder geocoder = new Geocoder(this, Locale.getDefault());
+        try {
+            List<Address> addresses = geocoder.getFromLocation(latitude, longitude, 1);
+            if (!addresses.isEmpty()) {
+                Address address = addresses.get(0);
+                StringBuilder locationName = new StringBuilder();
+                for (int i = 0; i <= address.getMaxAddressLineIndex(); i++) {
+                    locationName.append(address.getAddressLine(i));
+                    if (i < address.getMaxAddressLineIndex()) {
+                        locationName.append(", ");
+                    }
+                }
+                return locationName.toString();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     private void clearFields() {
         etName.setText("");
         etLink.setText("");
         etAddress.setText("");
         etContactNumber.setText("");
         etFood.setText("");
-        txtLocation.setText(""); // Clear the location TextView
+        txtLocation.setText("");
         ratingBar.setRating(0);
         profileImage.setImageResource(R.drawable.default_profile_image);
-        googleMap.clear(); // Clear the map marker
+        googleMap.clear();
     }
 
     @Override
     public void onMapReady(GoogleMap map) {
         googleMap = map;
-        googleMap.getUiSettings().setAllGesturesEnabled(false); // Disable map interactions
+        googleMap.getUiSettings().setAllGesturesEnabled(false);
     }
 
     @Override

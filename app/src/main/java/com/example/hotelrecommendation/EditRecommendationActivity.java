@@ -2,6 +2,7 @@ package com.example.hotelrecommendation;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.location.Geocoder;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
@@ -24,12 +25,15 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Locale;
 
 public class EditRecommendationActivity extends AppCompatActivity implements OnMapReadyCallback {
 
@@ -50,6 +54,7 @@ public class EditRecommendationActivity extends AppCompatActivity implements OnM
     private StorageReference storageReference;
     private double selectedLatitude = 0.0;
     private double selectedLongitude = 0.0;
+    private Geocoder geocoder;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -70,6 +75,8 @@ public class EditRecommendationActivity extends AppCompatActivity implements OnM
         mapView.onCreate(savedInstanceState);
         mapView.getMapAsync(this);
 
+        geocoder = new Geocoder(this, Locale.getDefault());
+
         mAuth = FirebaseAuth.getInstance();
         databaseReference = FirebaseDatabase.getInstance().getReference("Creators");
         storageReference = FirebaseStorage.getInstance().getReference("hotel_images");
@@ -83,7 +90,7 @@ public class EditRecommendationActivity extends AppCompatActivity implements OnM
             String contactNumber = extras.getString("contactNumber");
             String food = extras.getString("food");
             float rating = extras.getFloat("rating");
-            String imageUrl = extras.getString("imageUrl"); // Get the image URL
+            String imageUrl = extras.getString("imageUrl");
             String location = extras.getString("location");
 
             etName.setText(name);
@@ -93,14 +100,11 @@ public class EditRecommendationActivity extends AppCompatActivity implements OnM
             etFood.setText(food);
             ratingBar.setRating(rating);
 
-            // Load profile image using Glide
             Glide.with(this).load(imageUrl).placeholder(R.drawable.default_profile_image).into(profileImage);
 
-            // Display the location in the TextView
             txtLocation.setText(location);
 
             if (googleMap != null) {
-                // Extract latitude and longitude from the location string
                 String[] latLngParts = location.split(", ");
                 double latitude = Double.parseDouble(latLngParts[0].substring("Latitude: ".length()));
                 double longitude = Double.parseDouble(latLngParts[1].substring("Longitude: ".length()));
@@ -143,7 +147,6 @@ public class EditRecommendationActivity extends AppCompatActivity implements OnM
     }
 
     private void selectLocation() {
-        // Open LocationSelectionActivity to select a new location
         Intent locationIntent = new Intent(EditRecommendationActivity.this, LocationSelectionActivity.class);
         startActivityForResult(locationIntent, LOCATION_SELECTION_REQUEST);
     }
@@ -156,24 +159,43 @@ public class EditRecommendationActivity extends AppCompatActivity implements OnM
             imageUri = data.getData();
             profileImage.setImageURI(imageUri);
         } else if (requestCode == LOCATION_SELECTION_REQUEST && resultCode == RESULT_OK) {
-            // Handle location selection result here
             if (data != null) {
                 double latitude = data.getDoubleExtra("latitude", 0.0);
                 double longitude = data.getDoubleExtra("longitude", 0.0);
+
+                String address = getAddressFromCoordinates(latitude, longitude);
+                etAddress.setText(address);
+
                 String selectedLocation = "Latitude: " + latitude + ", Longitude: " + longitude;
                 txtLocation.setText(selectedLocation);
 
-                // Update the map
                 if (googleMap != null) {
                     selectedLatitude = latitude;
                     selectedLongitude = longitude;
                     LatLng locationLatLng = new LatLng(latitude, longitude);
-                    googleMap.clear(); // Clear existing markers
+                    googleMap.clear();
                     googleMap.addMarker(new MarkerOptions().position(locationLatLng).title("Hotel Location"));
                     googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(locationLatLng, 15));
                 }
             }
         }
+    }
+
+    private String getAddressFromCoordinates(double latitude, double longitude) {
+        try {
+            List<android.location.Address> addresses = geocoder.getFromLocation(latitude, longitude, 1);
+            if (addresses != null && addresses.size() > 0) {
+                android.location.Address address = addresses.get(0);
+                StringBuilder addressText = new StringBuilder();
+                for (int i = 0; i <= address.getMaxAddressLineIndex(); i++) {
+                    addressText.append(address.getAddressLine(i)).append(" ");
+                }
+                return addressText.toString();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return "Address not found";
     }
 
     private void updateRecommendation() {
@@ -196,7 +218,6 @@ public class EditRecommendationActivity extends AppCompatActivity implements OnM
         recommendationRef.child("food").setValue(updatedFood);
         recommendationRef.child("rating").setValue(updatedRating);
 
-        // Update location if latitude and longitude are available
         if (selectedLatitude != 0.0 && selectedLongitude != 0.0) {
             String updatedLocation = "Latitude: " + selectedLatitude + ", Longitude: " + selectedLongitude;
             recommendationRef.child("location").setValue(updatedLocation);
@@ -209,24 +230,20 @@ public class EditRecommendationActivity extends AppCompatActivity implements OnM
 
             final String currentUserId = mAuth.getCurrentUser().getUid();
 
-            // Use the hotel name as the image name with the user's UID appended
             final StorageReference imageReference = storageReference.child(updatedName + "_" + currentUserId + ".jpg");
 
-            // Delete old image if it exists
             DatabaseReference oldImageUrlRef = recommendationRef.child("imageUrl");
-            oldImageUrlRef.get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+            oldImageUrlRef.get().addOnCompleteListener(new OnCompleteListener<com.google.firebase.database.DataSnapshot>() {
                 @Override
-                public void onComplete(@NonNull Task<DataSnapshot> task) {
+                public void onComplete(@NonNull Task<com.google.firebase.database.DataSnapshot> task) {
                     if (task.isSuccessful() && task.getResult() != null) {
                         String oldImageUrl = task.getResult().getValue(String.class);
                         if (oldImageUrl != null) {
-                            // Delete the old image from Firebase Storage
                             StorageReference oldImageRef = FirebaseStorage.getInstance().getReferenceFromUrl(oldImageUrl);
                             oldImageRef.delete().addOnCompleteListener(new OnCompleteListener<Void>() {
                                 @Override
                                 public void onComplete(@NonNull Task<Void> deleteTask) {
                                     if (deleteTask.isSuccessful()) {
-                                        // Upload the new image
                                         imageReference.putFile(imageUri)
                                                 .addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
                                                     @Override
@@ -237,8 +254,6 @@ public class EditRecommendationActivity extends AppCompatActivity implements OnM
                                                                 public void onComplete(@NonNull Task<Uri> downloadTask) {
                                                                     if (downloadTask.isSuccessful()) {
                                                                         String updatedImageUrl = downloadTask.getResult().toString();
-
-                                                                        // Update imageUrl in the database
                                                                         recommendationRef.child("imageUrl").setValue(updatedImageUrl);
                                                                         progressDialog.dismiss();
                                                                         Toast.makeText(EditRecommendationActivity.this, "Recommendation updated successfully", Toast.LENGTH_SHORT).show();
@@ -269,16 +284,13 @@ public class EditRecommendationActivity extends AppCompatActivity implements OnM
                 }
             });
         } else {
-            // If no new image was selected, just update the text fields
             Toast.makeText(EditRecommendationActivity.this, "Recommendation updated successfully", Toast.LENGTH_SHORT).show();
             Intent intent = new Intent(EditRecommendationActivity.this, ViewRecommendationActivity.class);
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP); // Clear the back stack
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             startActivity(intent);
             finish();
         }
     }
-
-    // ... (other methods)
 
     @Override
     protected void onResume() {
@@ -307,6 +319,6 @@ public class EditRecommendationActivity extends AppCompatActivity implements OnM
     @Override
     public void onMapReady(GoogleMap map) {
         googleMap = map;
-        googleMap.getUiSettings().setAllGesturesEnabled(false); // Disable map interactions
+        googleMap.getUiSettings().setAllGesturesEnabled(false);
     }
 }
