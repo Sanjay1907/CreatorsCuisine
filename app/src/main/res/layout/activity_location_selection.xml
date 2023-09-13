@@ -1,5 +1,5 @@
 <!-- activity_location_selection.xml -->
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -11,8 +11,8 @@
         android:id="@+id/mapView"
         android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_below="@+id/btnSearch"
+        android:layout_height="0dp"
+        android:layout_weight="1"
         android:tag="mapFragment" />
 
     <Button
@@ -21,25 +21,14 @@
         android:layout_height="wrap_content"
         android:text="Confirm Location"
         android:layout_gravity="center"
-        android:visibility="gone" />
+        android:visibility="gone"
+        android:layout_marginTop="16dp" />
 
-    <EditText
-        android:id="@+id/etLocationQuery"
+    <fragment
+        android:id="@+id/autocomplete_fragment"
+        android:name="com.google.android.libraries.places.widget.AutocompleteSupportFragment"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/btnConfirmLocation"
-        android:hint="Enter location to search"
-        android:padding="16dp"
         android:layout_margin="5dp" />
 
-    <Button
-        android:id="@+id/btnSearch"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Search"
-        android:layout_below="@+id/etLocationQuery"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="0dp"
-        android:onClick="searchLocation" />
-
-</RelativeLayout>
+</LinearLayout>

@@ -3,18 +3,16 @@ package com.example.hotelrecommendation;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.location.Address;
-import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
-
+import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -24,16 +22,19 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.libraries.places.api.Places;
+import com.google.android.libraries.places.api.model.Place;
+import com.google.android.libraries.places.api.model.TypeFilter;
+import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
+import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
 
-import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
-
 
 public class LocationSelectionActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
     private Button btnConfirmLocation;
-    private Button btnSearch;
     private double selectedLatitude;
     private double selectedLongitude;
     private boolean isLocationConfirmed = false;
@@ -44,20 +45,14 @@ public class LocationSelectionActivity extends AppCompatActivity implements OnMa
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_location_selection);
 
+        // Initialize Places API with your API key
+        Places.initialize(getApplicationContext(), "AIzaSyBjElpMHf-AjvF-84J3Gpt9ykXFYksHD98");
+
         mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.mapView);
         mapFragment.getMapAsync(this);
 
         btnConfirmLocation = findViewById(R.id.btnConfirmLocation);
         btnConfirmLocation.setVisibility(View.GONE); // Hide the "Confirm Location" button initially
-
-        btnSearch = findViewById(R.id.btnSearch);
-
-        btnSearch.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                searchLocation();
-            }
-        });
 
         btnConfirmLocation.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -73,56 +68,94 @@ public class LocationSelectionActivity extends AppCompatActivity implements OnMa
                 }
             }
         });
+
+        // Set up Autocomplete Support Fragment
+        AutocompleteSupportFragment autocompleteFragment = (AutocompleteSupportFragment)
+                getSupportFragmentManager().findFragmentById(R.id.autocomplete_fragment);
+
+        // Specify the types of place data to return
+        autocompleteFragment.setPlaceFields(Arrays.asList(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG));
+        autocompleteFragment.setTypeFilter(TypeFilter.CITIES);
+
+        // Set a PlaceSelectionListener to handle user selection
+        autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
+            @Override
+            public void onPlaceSelected(@NonNull Place place) {
+                // Handle the selected place
+                LatLng selectedLatLng = place.getLatLng();
+
+                // Clear previous markers
+                mMap.clear();
+
+                // Add a marker at the selected location
+                mMap.addMarker(new MarkerOptions().position(selectedLatLng).title(place.getName()));
+
+                // Set the selected location coordinates
+                selectedLatitude = selectedLatLng.latitude;
+                selectedLongitude = selectedLatLng.longitude;
+
+                // Update the flag and show the "Confirm Location" button
+                isLocationConfirmed = true;
+                btnConfirmLocation.setVisibility(View.VISIBLE);
+
+                // Set the map's camera position to the selected location
+                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(selectedLatLng, 15));
+            }
+
+            @Override
+            public void onError(@NonNull Status status) {
+                // Handle any errors
+                Toast.makeText(LocationSelectionActivity.this, "Error: " + status.getStatusMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
-        // Check if a location is already confirmed
-        if (!isLocationConfirmed) {
-            // Enable the My Location layer if it's not already enabled
-            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-                mMap.setMyLocationEnabled(true);
-            }
-
-            // Customize the position of the My Location button
-            View locationButton = ((View) mapFragment.getView().findViewById(Integer.parseInt("1")).
-                    getParent()).findViewById(Integer.parseInt("2"));
-            RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams)
-                    locationButton.getLayoutParams();
-            // Position the button on the bottom center
-            layoutParams.addRule(RelativeLayout.ALIGN_PARENT_TOP, 0);
-            layoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
-            layoutParams.setMargins(0, 0, 30, 30); // Adjust margins as needed
-
-            // Set a default zoom level for the user's current location
-            mMap.moveCamera(CameraUpdateFactory.zoomTo(15));
-
-            // Use FusedLocationProviderClient to get the user's current location
-            FusedLocationProviderClient fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
-            fusedLocationClient.getLastLocation()
-                    .addOnSuccessListener(this, new OnSuccessListener<Location>() {
-                        @Override
-                        public void onSuccess(Location location) {
-                            if (location != null) {
-                                // Get the current location coordinates
-                                LatLng currentLocation = new LatLng(location.getLatitude(), location.getLongitude());
-
-                                // Set the map's camera position to the current location
-                                mMap.moveCamera(CameraUpdateFactory.newLatLng(currentLocation));
-                            }
-                        }
-                    });
+        // Enable the My Location layer if it's not already enabled
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            mMap.setMyLocationEnabled(true);
         }
 
+        // Customize the position of the My Location button
+        View locationButton = ((View) mapFragment.getView().findViewById(Integer.parseInt("1")).
+                getParent()).findViewById(Integer.parseInt("2"));
+        RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams)
+                locationButton.getLayoutParams();
+        // Position the button on the bottom center
+        layoutParams.addRule(RelativeLayout.ALIGN_PARENT_TOP, 0);
+        layoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
+        layoutParams.setMargins(0, 0, 30, 30); // Adjust margins as needed
+
+        // Set a default zoom level for the user's current location
+        mMap.moveCamera(CameraUpdateFactory.zoomTo(15));
+
+        // Use FusedLocationProviderClient to get the user's current location
+        FusedLocationProviderClient fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+        fusedLocationClient.getLastLocation()
+                .addOnSuccessListener(this, new OnSuccessListener<Location>() {
+                    @Override
+                    public void onSuccess(Location location) {
+                        if (location != null) {
+                            // Get the current location coordinates
+                            LatLng currentLocation = new LatLng(location.getLatitude(), location.getLongitude());
+
+                            // Set the map's camera position to the current location
+                            mMap.moveCamera(CameraUpdateFactory.newLatLng(currentLocation));
+                        }
+                    }
+                });
+
+        // Set a map click listener to allow the user to select a location by clicking on the map
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng latLng) {
                 // Clear previous markers
                 mMap.clear();
 
-                // Add a new marker at the selected location
+                // Add a new marker at the clicked location
                 mMap.addMarker(new MarkerOptions().position(latLng).title("Selected Location"));
 
                 // Set the selected location coordinates
@@ -134,45 +167,5 @@ public class LocationSelectionActivity extends AppCompatActivity implements OnMa
                 btnConfirmLocation.setVisibility(View.VISIBLE);
             }
         });
-    }
-
-
-    public void searchLocation() {
-        EditText etLocationQuery = findViewById(R.id.etLocationQuery);
-        String locationQuery = etLocationQuery.getText().toString().trim();
-
-        if (!locationQuery.isEmpty()) {
-            Geocoder geocoder = new Geocoder(LocationSelectionActivity.this);
-            try {
-                List<Address> addressList = geocoder.getFromLocationName(locationQuery, 1);
-                if (!addressList.isEmpty()) {
-                    Address address = addressList.get(0);
-                    LatLng searchedLocation = new LatLng(address.getLatitude(), address.getLongitude());
-
-                    // Clear previous markers
-                    mMap.clear();
-
-                    // Add a marker at the searched location
-                    mMap.addMarker(new MarkerOptions().position(searchedLocation).title("Searched Location"));
-
-                    // Set the selected location coordinates
-                    selectedLatitude = searchedLocation.latitude;
-                    selectedLongitude = searchedLocation.longitude;
-
-                    // Update the flag and show the "Confirm Location" button
-                    isLocationConfirmed = true;
-                    btnConfirmLocation.setVisibility(View.VISIBLE);
-
-                    // Set the map's camera position to the searched location
-                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(searchedLocation, 15));
-                } else {
-                    Toast.makeText(LocationSelectionActivity.this, "Location not found", Toast.LENGTH_SHORT).show();
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        } else {
-            Toast.makeText(LocationSelectionActivity.this, "Please enter a location", Toast.LENGTH_SHORT).show();
-        }
     }
 }
