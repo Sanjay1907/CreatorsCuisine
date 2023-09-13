@@ -1,53 +1,54 @@
 package com.example.hotelrecommendation;
 
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.location.Location;
+import android.location.Address;
+import android.location.Geocoder;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationCallback;
-import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationResult;
-import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.GoogleMap.OnMapClickListener;
+import java.io.IOException;
+import java.util.List;
+
 
 public class LocationSelectionActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
-    private FusedLocationProviderClient fusedLocationClient;
-    private LocationCallback locationCallback;
     private Button btnConfirmLocation;
+    private Button btnSearch;
     private double selectedLatitude;
     private double selectedLongitude;
     private boolean isLocationConfirmed = false;
+    private SupportMapFragment mapFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_location_selection);
 
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
-
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.mapView);
+        mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.mapView);
         mapFragment.getMapAsync(this);
 
         btnConfirmLocation = findViewById(R.id.btnConfirmLocation);
         btnConfirmLocation.setVisibility(View.GONE); // Hide the "Confirm Location" button initially
+
+        btnSearch = findViewById(R.id.btnSearch);
+
+        btnSearch.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                searchLocation();
+            }
+        });
 
         btnConfirmLocation.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -63,36 +64,34 @@ public class LocationSelectionActivity extends AppCompatActivity implements OnMa
                 }
             }
         });
-
-        // Initialize location callback
-        locationCallback = new LocationCallback() {
-            @Override
-            public void onLocationResult(LocationResult locationResult) {
-                if (locationResult != null) {
-                    Location location = locationResult.getLastLocation();
-                    if (location != null) {
-                        // Get the current location coordinates
-                        LatLng currentLocation = new LatLng(location.getLatitude(), location.getLongitude());
-
-                        // Set the map's camera position to the current location
-                        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 15));
-
-                        // Add a marker for the current location
-                        mMap.addMarker(new MarkerOptions().position(currentLocation).title("Current Location"));
-                    }
-                }
-            }
-        };
-
-        // Request current location updates
-        requestLocationUpdates();
     }
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
-        mMap.setOnMapClickListener(new OnMapClickListener() {
+        // Check if a location is already confirmed
+        if (!isLocationConfirmed) {
+            // Set the initial camera position to the current location
+            mMap.setOnMapLoadedCallback(new GoogleMap.OnMapLoadedCallback() {
+                @Override
+                public void onMapLoaded() {
+                    mMap.setMyLocationEnabled(true);
+
+                    // Customize the position of the My Location button
+                    View locationButton = ((View) mapFragment.getView().findViewById(Integer.parseInt("1")).
+                            getParent()).findViewById(Integer.parseInt("2"));
+                    RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams)
+                            locationButton.getLayoutParams();
+                    // Position the button on the bottom center
+                    layoutParams.addRule(RelativeLayout.ALIGN_PARENT_TOP, 0);
+                    layoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
+                    layoutParams.setMargins(0, 0, 30, 30); // Adjust margins as needed
+                }
+            });
+        }
+
+        mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng latLng) {
                 // Clear previous markers
@@ -108,37 +107,46 @@ public class LocationSelectionActivity extends AppCompatActivity implements OnMa
                 // Update the flag and show the "Confirm Location" button
                 isLocationConfirmed = true;
                 btnConfirmLocation.setVisibility(View.VISIBLE);
-
             }
         });
     }
 
-    // Request location updates
-    private void requestLocationUpdates() {
-        LocationRequest locationRequest = LocationRequest.create()
-                .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
-                .setInterval(10000); // 10 seconds
+    public void searchLocation() {
+        EditText etLocationQuery = findViewById(R.id.etLocationQuery);
+        String locationQuery = etLocationQuery.getText().toString().trim();
 
-        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, 1);
-            return;
-        }
-        fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, null);
-    }
+        if (!locationQuery.isEmpty()) {
+            Geocoder geocoder = new Geocoder(LocationSelectionActivity.this);
+            try {
+                List<Address> addressList = geocoder.getFromLocationName(locationQuery, 1);
+                if (!addressList.isEmpty()) {
+                    Address address = addressList.get(0);
+                    LatLng searchedLocation = new LatLng(address.getLatitude(), address.getLongitude());
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        if (locationCallback != null) {
-            requestLocationUpdates();
-        }
-    }
+                    // Clear previous markers
+                    mMap.clear();
 
-    @Override
-    protected void onPause() {
-        super.onPause();
-        if (locationCallback != null) {
-            fusedLocationClient.removeLocationUpdates(locationCallback);
+                    // Add a marker at the searched location
+                    mMap.addMarker(new MarkerOptions().position(searchedLocation).title("Searched Location"));
+
+                    // Set the selected location coordinates
+                    selectedLatitude = searchedLocation.latitude;
+                    selectedLongitude = searchedLocation.longitude;
+
+                    // Update the flag and show the "Confirm Location" button
+                    isLocationConfirmed = true;
+                    btnConfirmLocation.setVisibility(View.VISIBLE);
+
+                    // Set the map's camera position to the searched location
+                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(searchedLocation, 15));
+                } else {
+                    Toast.makeText(LocationSelectionActivity.this, "Location not found", Toast.LENGTH_SHORT).show();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            Toast.makeText(LocationSelectionActivity.this, "Please enter a location", Toast.LENGTH_SHORT).show();
         }
     }
 }

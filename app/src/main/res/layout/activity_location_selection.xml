@@ -12,7 +12,9 @@
         android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_below="@+id/btnSearch"
         android:tag="mapFragment" />
+
     <Button
         android:id="@+id/btnConfirmLocation"
         android:layout_width="wrap_content"
@@ -21,7 +23,23 @@
         android:layout_gravity="center"
         android:visibility="gone" />
 
+    <EditText
+        android:id="@+id/etLocationQuery"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/btnConfirmLocation"
+        android:hint="Enter location to search"
+        android:padding="16dp"
+        android:layout_margin="5dp" />
 
-    <!-- Other UI elements can be added here if needed -->
+    <Button
+        android:id="@+id/btnSearch"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Search"
+        android:layout_below="@+id/etLocationQuery"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="0dp"
+        android:onClick="searchLocation" />
 
 </RelativeLayout>
