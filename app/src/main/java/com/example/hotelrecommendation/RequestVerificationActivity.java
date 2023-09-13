@@ -1,5 +1,6 @@
 package com.example.hotelrecommendation;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
@@ -25,7 +26,6 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
-
 import java.io.File;
 import java.util.Objects;
 
@@ -40,6 +40,7 @@ public class RequestVerificationActivity extends AppCompatActivity {
     private DatabaseReference databaseReference;
     private StorageReference storageReference;
     private boolean formSubmitted = false; // To track if the form has been submitted
+    private ProgressDialog progressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,6 +52,10 @@ public class RequestVerificationActivity extends AppCompatActivity {
                 .child(Objects.requireNonNull(mAuth.getCurrentUser()).getUid())
                 .child("request_verification");
         storageReference = FirebaseStorage.getInstance().getReference("RequestVerification");
+
+        progressDialog = new ProgressDialog(this);
+        progressDialog.setMessage("Submitting Request...");
+        progressDialog.setCancelable(false); // Prevent users from dismissing the dialog
 
         spinnerDocumentType = findViewById(R.id.spinnerDocumentType);
         btnChooseDocument = findViewById(R.id.btnChooseDocument);
@@ -120,7 +125,7 @@ public class RequestVerificationActivity extends AppCompatActivity {
                     String documentFileType = dataSnapshot.child("documentType").getValue(String.class);
 
                     // Update the TextView with the submitted document details
-                    tvSelectedDocument.setText("Already Submitted the Request.\nUploaded Document: " + documentFileName+"\nUploaded Document Type: "+ documentFileType);
+                    tvSelectedDocument.setText("Already Submitted the Request.\nUploaded Document: " + documentFileName + "\nUploaded Document Type: " + documentFileType);
                 } else {
                     // The "request_verification" child node doesn't exist, indicating the form has not been submitted
                     formSubmitted = false;
@@ -173,6 +178,8 @@ public class RequestVerificationActivity extends AppCompatActivity {
 
     private void uploadPDF() {
         if (pdfUri != null) {
+            progressDialog.show(); // Show the progress dialog
+
             final String documentType = spinnerDocumentType.getSelectedItem().toString();
             final String userId = mAuth.getCurrentUser().getUid();
             final String fileName = userId + "_" + documentType + ".pdf";
@@ -189,6 +196,7 @@ public class RequestVerificationActivity extends AppCompatActivity {
                                 public void onSuccess(Uri downloadUri) {
                                     String documentUrl = downloadUri.toString();
                                     saveDocumentData(userId, documentType, documentUrl, fileName);
+                                    progressDialog.dismiss(); // Dismiss the progress dialog
                                 }
                             });
                         }
@@ -196,6 +204,7 @@ public class RequestVerificationActivity extends AppCompatActivity {
                     .addOnFailureListener(new OnFailureListener() {
                         @Override
                         public void onFailure(@NonNull Exception e) {
+                            progressDialog.dismiss(); // Dismiss the progress dialog
                             Toast.makeText(RequestVerificationActivity.this,
                                     "Document upload failed", Toast.LENGTH_SHORT).show();
                         }
@@ -212,8 +221,11 @@ public class RequestVerificationActivity extends AppCompatActivity {
         userReference.child("documentFileName").setValue(documentFileName);
         userReference.child("documentUrl").setValue(documentUrl);
 
+        progressDialog.dismiss(); // Dismiss the progress dialog
+
+        // Show the verification request submitted message
         Toast.makeText(RequestVerificationActivity.this,
-                "Document uploaded and saved successfully", Toast.LENGTH_SHORT).show();
+                "Verification Request Submitted", Toast.LENGTH_SHORT).show();
         finish();
     }
 }

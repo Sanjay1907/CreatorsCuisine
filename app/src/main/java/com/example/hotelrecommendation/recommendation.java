@@ -178,7 +178,10 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
                                                         progressDialog.dismiss();
                                                         if (addTask.isSuccessful()) {
                                                             Toast.makeText(recommendation.this, "Recommendation added successfully", Toast.LENGTH_SHORT).show();
-                                                            clearFields();
+                                                            Intent intent = new Intent(recommendation.this, MainActivity.class);
+                                                            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP); // Clear the back stack
+                                                            startActivity(intent);
+                                                            finish();
                                                         } else {
                                                             Toast.makeText(recommendation.this, "Failed to add recommendation", Toast.LENGTH_SHORT).show();
                                                         }

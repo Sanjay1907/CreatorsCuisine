@@ -22,7 +22,7 @@ public class MainActivity extends AppCompatActivity {
 
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1; // Use a different code from the previous activity
 
-    private Button btnProfile, btnAddRecommendation, btnRequestVerification, btnLogout;
+    private Button btnProfile, btnAddRecommendation, btnRequestVerification, btnLogout, btnViewRecommendation;
     private FirebaseAuth mAuth;
     private DatabaseReference databaseReference;
 
@@ -38,6 +38,7 @@ public class MainActivity extends AppCompatActivity {
         btnAddRecommendation = findViewById(R.id.btnAddRecommendation);
         btnRequestVerification = findViewById(R.id.btnRequestVerification);
         btnLogout = findViewById(R.id.btnLogout);
+        btnViewRecommendation = findViewById(R.id.btnViewRecommendation);
 
         // Check if the "name" field exists in the Realtime Database
         databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -78,6 +79,14 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(MainActivity.this, recommendation.class);
+                startActivity(intent);
+            }
+        });
+
+        btnViewRecommendation.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(MainActivity.this, ViewRecommendationActivity.class);
                 startActivity(intent);
             }
         });
