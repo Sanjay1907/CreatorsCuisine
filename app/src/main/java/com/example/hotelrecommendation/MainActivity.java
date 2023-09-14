@@ -1,12 +1,15 @@
 package com.example.hotelrecommendation;
 
 import android.Manifest;
+import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -100,15 +103,41 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+
         btnLogout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                mAuth.signOut();
-                Intent i = new Intent(getApplicationContext(), SendOTPActivity.class);
-                startActivity(i);
-                finish();
+                // Show an alert dialog to confirm logout
+                new AlertDialog.Builder(MainActivity.this)
+                        .setTitle("Logout")
+                        .setMessage("Are you sure you want to logout?")
+                        .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                // User confirmed logout, show a progress dialog
+                                ProgressDialog progressDialog = new ProgressDialog(MainActivity.this);
+                                progressDialog.setMessage("Logging out...");
+                                progressDialog.setCancelable(false);
+                                progressDialog.show();
+
+                                // Perform the logout operation
+                                mAuth.signOut();
+                                Intent intent = new Intent(getApplicationContext(), SendOTPActivity.class);
+                                startActivity(intent);
+                                progressDialog.dismiss(); // Dismiss the progress dialog
+                                finish();
+                            }
+                        })
+                        .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                // User canceled the logout, do nothing
+                            }
+                        })
+                        .show();
             }
         });
+
     }
 
     // Handle the result of the permission request

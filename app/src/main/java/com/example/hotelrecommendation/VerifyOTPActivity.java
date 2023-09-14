@@ -202,6 +202,8 @@ public class VerifyOTPActivity extends AppCompatActivity {
             public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
                 if (!charSequence.toString().trim().isEmpty()) {
                     in3.requestFocus();
+                } else if (charSequence.length() == 0) {
+                    in1.requestFocus();
                 }
             }
 
@@ -220,6 +222,8 @@ public class VerifyOTPActivity extends AppCompatActivity {
             public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
                 if (!charSequence.toString().trim().isEmpty()) {
                     in4.requestFocus();
+                } else if (charSequence.length() == 0) {
+                    in2.requestFocus();
                 }
             }
 
@@ -238,6 +242,8 @@ public class VerifyOTPActivity extends AppCompatActivity {
             public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
                 if (!charSequence.toString().trim().isEmpty()) {
                     in5.requestFocus();
+                } else if (charSequence.length() == 0) {
+                    in3.requestFocus();
                 }
             }
 
@@ -256,6 +262,28 @@ public class VerifyOTPActivity extends AppCompatActivity {
             public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
                 if (!charSequence.toString().trim().isEmpty()) {
                     in6.requestFocus();
+                } else if (charSequence.length() == 0) {
+                    in4.requestFocus();
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+
+            }
+        });
+        in6.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                if (!charSequence.toString().trim().isEmpty()) {
+                    // Last EditText, do nothing when a character is entered
+                } else if (charSequence.length() == 0) {
+                    in5.requestFocus();
                 }
             }
 
