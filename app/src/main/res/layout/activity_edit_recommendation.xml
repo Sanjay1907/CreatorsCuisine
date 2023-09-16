@@ -31,7 +31,7 @@
             android:id="@+id/btnChooseImage"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Choose Hotel Image"
+            android:text="Change Image"
             android:textSize="18dp"
             android:layout_marginTop="10dp"
             android:layout_gravity="center"
@@ -47,7 +47,7 @@
             android:layout_marginTop="5dp"
             android:layout_gravity="center"
             android:backgroundTint="@color/colorPrimary"
-            android:text="Select Location"
+            android:text="Change Location"
             android:textSize="18dp"/>
 
         <EditText
