@@ -22,9 +22,6 @@
         android:theme="@style/Theme.HotelRecommendation"
         tools:targetApi="31">
         <activity
-            android:name=".ChangeLocationActivity"
-            android:exported="false" />
-        <activity
             android:name=".EditRecommendationActivity"
             android:exported="false" />
         <activity
