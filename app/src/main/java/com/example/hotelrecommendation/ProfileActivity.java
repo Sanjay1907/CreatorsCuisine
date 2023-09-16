@@ -38,7 +38,7 @@ public class ProfileActivity extends AppCompatActivity {
 
     private static final int PICK_IMAGE_REQUEST = 1;
 
-    private EditText etName, etEmail, etContactNumber;
+    private EditText etName, etEmail, etContactNumber, etChannelname, etChannellink, etinstaid;
     private ImageView profileImage;
     private Button btnChooseImage, btnSaveProfile, btngetverified;
     private Uri imageUri;
@@ -59,6 +59,9 @@ public class ProfileActivity extends AppCompatActivity {
         btnChooseImage = findViewById(R.id.btnChooseImage);
         btnSaveProfile = findViewById(R.id.btnUpdateProfile);
         btngetverified = findViewById(R.id.btngetverified);
+        etChannelname = findViewById(R.id.etChannelname);
+        etChannellink = findViewById(R.id.etChannellink);
+        etinstaid = findViewById(R.id.etinstaid);
 
         mAuth = FirebaseAuth.getInstance();
         databaseReference = FirebaseDatabase.getInstance().getReference("Creators")
@@ -75,11 +78,17 @@ public class ProfileActivity extends AppCompatActivity {
                 if (dataSnapshot.exists()) {
                     String nameFromDb = dataSnapshot.child("name").getValue(String.class);
                     String emailFromDb = dataSnapshot.child("email").getValue(String.class);
+                    String chname = dataSnapshot.child("Youtube Channel name").getValue(String.class);
+                    String chlink = dataSnapshot.child("Youtube Channel Link").getValue(String.class);
+                    String insta = dataSnapshot.child("Instagram id").getValue(String.class);
                     String imageUrlFromDb = dataSnapshot.child("profileImage").getValue(String.class);
 
                     // Autofill the fields
                     etName.setText(nameFromDb);
                     etEmail.setText(emailFromDb);
+                    etChannelname.setText(chname);
+                    etChannellink.setText(chlink);
+                    etinstaid.setText(insta);
 
                     // Load profile image if available using Glide
                     if (imageUrlFromDb != null && !imageUrlFromDb.isEmpty()) {
@@ -189,6 +198,9 @@ public class ProfileActivity extends AppCompatActivity {
     private void saveProfile() {
         final String name = etName.getText().toString().trim();
         final String email = etEmail.getText().toString().trim();
+        final String channelname = etChannelname.getText().toString().trim();
+        final String channellink = etChannellink.getText().toString().trim();
+        final String instaid = etinstaid.getText().toString().trim();
 
         // Check if name is empty
         if (TextUtils.isEmpty(name)) {
@@ -202,6 +214,24 @@ public class ProfileActivity extends AppCompatActivity {
             return;
         }
 
+        // Check if at least one of YouTube channel link or Instagram ID is provided
+        if (TextUtils.isEmpty(channellink) && TextUtils.isEmpty(instaid)) {
+            Toast.makeText(this, "Either YouTube channel link or Instagram ID is mandatory.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        // Check if email is in a valid format
+        if (!isValidUrl(channellink)) {
+            Toast.makeText(this, "Please enter a valid Youtube channel link.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+
+
+        // If YouTube channel link is provided, then YouTube channel name is also mandatory
+        if (!TextUtils.isEmpty(channellink) && TextUtils.isEmpty(channelname)) {
+            Toast.makeText(this, "YouTube channel name is required as you provided a YouTube channel link.", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
         progressDialog.show();
 
@@ -225,10 +255,10 @@ public class ProfileActivity extends AppCompatActivity {
 
                     if (currentImageUrl != null && !currentImageUrl.isEmpty()) {
                         // There's a current image URL, update the profile without changing the image
-                        updateUserProfile(name, email, currentImageUrl);
+                        updateUserProfile(name, email, channelname, channellink, instaid, currentImageUrl);
                     } else {
                         // There's no current image URL, update the profile without an image
-                        updateUserProfile(name, email, "");
+                        updateUserProfile(name, email, channelname, channellink, instaid, "");
                     }
                 }
 
@@ -241,12 +271,21 @@ public class ProfileActivity extends AppCompatActivity {
         }
     }
 
+    private boolean isValidUrl(String url) {
+        // Define a regular expression for a valid URL
+        String urlRegex = "^(http(s)?://)?[\\w.-]+\\.[a-zA-Z]{2,4}(/\\S*)?$";
 
-    private void updateUserProfile(final String name, String email, String imageUrl) {
+        // Check if the input matches the regular expression
+        return url.matches(urlRegex);
+    }
+    private void updateUserProfile(final String name, String email, String channelname, String channellink, String instaid, String imageUrl) {
         // Create a user object
         Map<String, Object> user = new HashMap<>();
         user.put("name", name);
         user.put("email", email);
+        user.put("Youtube Channel name", channelname);
+        user.put("Youtube Channel Link", channellink);
+        user.put("Instagram id", instaid);
 
         // Check if there's a change in the profile image URL
         if (!imageUrl.isEmpty()) {
@@ -313,7 +352,7 @@ public class ProfileActivity extends AppCompatActivity {
                                     if (downloadTask.isSuccessful()) {
                                         String imageUrl = downloadTask.getResult().toString();
                                         // Update user profile with the new image URL
-                                        updateUserProfile(etName.getText().toString().trim(), etEmail.getText().toString().trim(), imageUrl);
+                                        updateUserProfile(etName.getText().toString().trim(), etEmail.getText().toString().trim(), etChannelname.getText().toString().trim(), etChannellink.getText().toString().trim(), etinstaid.getText().toString().trim(), imageUrl);
                                     } else {
                                         progressDialog.dismiss();
                                         Toast.makeText(ProfileActivity.this, "Image upload failed", Toast.LENGTH_SHORT).show();

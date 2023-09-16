@@ -95,6 +95,17 @@
             android:inputType="number"
             android:maxLength="10"/>
 
+        <EditText
+            android:id="@+id/etTimings"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:hint="Hotel Timings (e.g., 8am - 9pm)"
+            android:textSize="18dp"
+            android:inputType="text"/>
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -108,14 +119,14 @@
                 android:layout_marginTop="10dp"
                 android:layout_marginLeft="20dp"
                 android:layout_marginRight="20dp"
-                android:hint="Must Try Food Items (Optional)"
+                android:hint="Must Try Food Items"
                 android:textSize="18dp"/>
 
             <Button
                 android:id="@+id/btnAddFoodItem"
                 android:layout_width="70dp"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="15dp"
+                android:layout_marginTop="10dp"
                 android:layout_marginRight="20dp"
                 android:backgroundTint="@color/colorPrimary"
                 android:drawableLeft="@drawable/baseline_add_24" />
@@ -129,7 +140,8 @@
             android:layout_marginLeft="20dp"
             android:layout_marginRight="20dp"
             android:text="Must Try Food Items:"
-            android:textSize="18dp" />
+            android:textSize="18dp"
+            android:visibility="gone"/>
 
         <RatingBar
             android:id="@+id/ratingBar"
@@ -137,7 +149,7 @@
             android:layout_height="wrap_content"
             android:layout_below="@+id/editTextMustTryFoods"
             android:layout_centerHorizontal="true"
-            android:layout_marginTop="10dp"
+            android:layout_marginTop="15dp"
             android:layout_marginLeft="20dp"
             android:layout_marginRight="20dp"
             android:textSize="18dp"

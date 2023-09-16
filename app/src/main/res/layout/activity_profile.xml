@@ -121,7 +121,7 @@
             android:paddingLeft="15dp"
             app:layout_constraintTop_toBottomOf="@id/etEmail"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/ivVerified" /> <!-- Note the modification here -->
+            app:layout_constraintEnd_toStartOf="@+id/ivVerified" />
 
         <ImageView
             android:id="@+id/ivVerified"
@@ -133,7 +133,62 @@
             app:layout_constraintTop_toTopOf="@id/etContactNumber"
             app:layout_constraintEnd_toEndOf="parent" />
 
+        <EditText
+            android:id="@+id/etChannelname"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:background="@drawable/border_bkg"
+            android:drawableLeft="@drawable/baseline_tv_24"
+            android:drawablePadding="10dp"
+            android:elevation="15dp"
+            android:textSize="22dp"
+            android:hint="Youtube Channel Name"
+            android:inputType="text"
+            android:paddingLeft="15dp"
+            app:layout_constraintTop_toBottomOf="@id/etContactNumber"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
 
+        <EditText
+            android:id="@+id/etChannellink"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:background="@drawable/border_bkg"
+            android:drawableLeft="@drawable/baseline_link_24"
+            android:drawablePadding="10dp"
+            android:elevation="15dp"
+            android:textSize="22dp"
+            android:hint="Youtube Channel Link"
+            android:inputType="textUri"
+            android:paddingLeft="15dp"
+            app:layout_constraintTop_toBottomOf="@id/etChannelname"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
+
+        <EditText
+            android:id="@+id/etinstaid"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:background="@drawable/border_bkg"
+            android:drawableLeft="@drawable/baseline_public_24"
+            android:drawablePadding="10dp"
+            android:elevation="15dp"
+            android:textSize="22dp"
+            android:hint="Instagram Id"
+            android:inputType="text"
+            android:paddingLeft="15dp"
+            app:layout_constraintTop_toBottomOf="@id/etChannellink"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
 
         <Button
             android:id="@+id/btnUpdateProfile"
@@ -144,7 +199,7 @@
             android:textSize="18dp"
             android:textColor="@color/colorWhite"
             android:backgroundTint="@color/colorPrimary"
-            app:layout_constraintTop_toBottomOf="@id/etContactNumber"
+            app:layout_constraintTop_toBottomOf="@id/etinstaid"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
 

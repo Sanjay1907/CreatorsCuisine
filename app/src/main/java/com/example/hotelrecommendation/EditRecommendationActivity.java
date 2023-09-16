@@ -45,7 +45,7 @@ public class EditRecommendationActivity extends AppCompatActivity implements OnM
     private static final int LOCATION_SELECTION_REQUEST = 2;
     private ImageView profileImage;
     private Button btnChooseImage, btnAddLocation, btnUpdateRecommendation, btnAddFoodItem;
-    private EditText etName, etLink, etAddress, etContactNumber, etFood;
+    private EditText etName, etLink, etAddress, etContactNumber, etFood, ettimings;
     private RatingBar ratingBar;
     private Uri imageUri;
     private FirebaseAuth mAuth;
@@ -73,6 +73,7 @@ public class EditRecommendationActivity extends AppCompatActivity implements OnM
         etAddress = findViewById(R.id.etaddress);
         etContactNumber = findViewById(R.id.etContactNumber);
         etFood = findViewById(R.id.etfood);
+        ettimings = findViewById(R.id.etTimings);
         ratingBar = findViewById(R.id.ratingBar);
         btnChooseImage = findViewById(R.id.btnChooseImage);
         btnAddLocation = findViewById(R.id.btnlocation);
@@ -104,11 +105,13 @@ public class EditRecommendationActivity extends AppCompatActivity implements OnM
             float rating = extras.getFloat("rating");
             String imageUrl = extras.getString("imageUrl");
             String location = extras.getString("location");
+            String timings = extras.getString("timings");
 
             etName.setText(name);
             etLink.setText(link);
             etAddress.setText(address);
             etContactNumber.setText(contactNumber);
+            ettimings.setText(timings);
             ratingBar.setRating(rating);
 
             Glide.with(this).load(imageUrl).placeholder(R.drawable.default_hotel_img).into(profileImage);
@@ -199,18 +202,37 @@ public class EditRecommendationActivity extends AppCompatActivity implements OnM
         String foodItem = etFood.getText().toString().trim();
 
         if (!foodItem.isEmpty()) {
-            // Append the food item to the TextView with a comma if it's not the first item
-            if (tvAddedFoodItems.getVisibility() == View.GONE) {
-                tvAddedFoodItems.setVisibility(View.VISIBLE);
-            } else {
-                tvAddedFoodItems.append(", ");
+            // Get the current food items text
+            String currentFoodItems = tvAddedFoodItems.getText().toString().trim();
+
+            // Check if "Must Try Food Items:" is already in the text
+            boolean mustTryItemsExist = currentFoodItems.startsWith("Must Try Food Items:\n");
+
+            // Split the text into lines
+            String[] lines = currentFoodItems.split("\n");
+
+            // Calculate the next serial number
+            int nextSno = mustTryItemsExist ? lines.length : lines.length + 1;
+
+            // Create the new food item with the serial number
+            String newFoodItem = nextSno + ". " + foodItem;
+
+            // Append the new food item to the existing text with a new line
+            String updatedFoodItems = currentFoodItems.isEmpty() ? newFoodItem : currentFoodItems + "\n" + newFoodItem;
+
+            // Set the updated food items text
+            if (!mustTryItemsExist) {
+                updatedFoodItems = "" + updatedFoodItems;
             }
-            tvAddedFoodItems.append(foodItem);
+            tvAddedFoodItems.setText(updatedFoodItems);
 
             // Clear the EditText
             etFood.setText("");
         }
     }
+
+
+
 
     private void chooseImage() {
         Intent intent = new Intent();
@@ -276,6 +298,7 @@ public class EditRecommendationActivity extends AppCompatActivity implements OnM
         String updatedLink = etLink.getText().toString().trim();
         String updatedAddress = etAddress.getText().toString().trim();
         String updatedContactNumber = etContactNumber.getText().toString().trim();
+        String updatedtimings = ettimings.getText().toString().trim();
         String updatedFood = tvAddedFoodItems.getText().toString().trim().replace("Must Try Food Items: ", "");
         float updatedRating = ratingBar.getRating();
 
@@ -288,6 +311,7 @@ public class EditRecommendationActivity extends AppCompatActivity implements OnM
         recommendationRef.child("link").setValue(updatedLink);
         recommendationRef.child("address").setValue(updatedAddress);
         recommendationRef.child("contactNumber").setValue(updatedContactNumber);
+        recommendationRef.child("timings").setValue(updatedtimings);
         recommendationRef.child("food").setValue(updatedFood);
         recommendationRef.child("rating").setValue(updatedRating);
 

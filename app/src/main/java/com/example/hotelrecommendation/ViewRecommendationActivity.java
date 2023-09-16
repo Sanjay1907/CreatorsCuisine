@@ -83,6 +83,7 @@ public class ViewRecommendationActivity extends AppCompatActivity {
                                             String contactNumber = dataSnapshot.child("contactNumber").getValue(String.class);
                                             String food = dataSnapshot.child("food").getValue(String.class);
                                             String location = dataSnapshot.child("location").getValue(String.class);
+                                            String timings = dataSnapshot.child("timings").getValue(String.class);
                                             float rating = dataSnapshot.child("rating").getValue(Float.class);
                                             String imageUrl = dataSnapshot.child("imageUrl").getValue(String.class); // Get the image URL
 
@@ -95,6 +96,7 @@ public class ViewRecommendationActivity extends AppCompatActivity {
                                             editIntent.putExtra("contactNumber", contactNumber);
                                             editIntent.putExtra("food", food);
                                             editIntent.putExtra("location", location);
+                                            editIntent.putExtra("timings", timings);
                                             editIntent.putExtra("rating", rating);
                                             editIntent.putExtra("imageUrl", imageUrl); // Pass the image URL
 

@@ -41,7 +41,7 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
     private static final int PICK_LOCATION_REQUEST = 2;
     private ImageView profileImage;
     private Button btnChooseImage, btnAddLocation, btnAddRecommendation, btnAddFoodItem;
-    private EditText etName, etLink, etAddress, etContactNumber, etFood;
+    private EditText etName, etLink, etAddress, etContactNumber, etFood, etTimings;
     private RatingBar ratingBar;
     private Uri imageUri;
     private FirebaseAuth mAuth;
@@ -49,6 +49,7 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
     private StorageReference storageReference;
     private TextView txtLocation, tvAddedFoodItems;
     private MapView mapView;
+    private int foodItemNumber = 1;
     private GoogleMap googleMap;
     private double selectedLatitude;
     private double selectedLongitude;
@@ -74,6 +75,7 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
         mapView = findViewById(R.id.mapView);
         mapView.onCreate(savedInstanceState);
         mapView.getMapAsync(this);
+        etTimings = findViewById(R.id.etTimings);
 
         mAuth = FirebaseAuth.getInstance();
         databaseReference = FirebaseDatabase.getInstance().getReference("Creators");
@@ -104,6 +106,7 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
         btnAddFoodItem = findViewById(R.id.btnAddFoodItem);
         tvAddedFoodItems = findViewById(R.id.tvAddedFoodItems);
         foodItemsBuilder = new StringBuilder(); // Initialize the StringBuilder
+        tvAddedFoodItems.setVisibility(View.GONE);
 
         btnAddFoodItem.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -161,25 +164,35 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
         String foodItem = etFood.getText().toString().trim();
 
         if (!foodItem.isEmpty()) {
-            // Append the food item to the StringBuilder
+            // Append the food item with the item number and a period
             if (foodItemsBuilder.length() > 0) {
-                foodItemsBuilder.append(", "); // Add a comma if it's not the first item
+                foodItemsBuilder.append("\n"); // Add a new line
             }
-            foodItemsBuilder.append(foodItem);
+            foodItemsBuilder.append(foodItemNumber).append(". ").append(foodItem); // Add item number
+
+            // Increment the item number for the next food item
+            foodItemNumber++;
 
             // Update the TextView with the current list of food items
-            tvAddedFoodItems.setText("Must Try Food Items: " + foodItemsBuilder.toString());
+            tvAddedFoodItems.setText("Must Try Food Items:\n" + foodItemsBuilder.toString());
 
             // Clear the EditText
             etFood.setText("");
+
+            // Set the TextView as visible if it was initially invisible
+            if (tvAddedFoodItems.getVisibility() == View.GONE) {
+                tvAddedFoodItems.setVisibility(View.VISIBLE);
+            }
         }
     }
+
 
     private void addRecommendation() {
         final String name = etName.getText().toString().trim();
         final String link = etLink.getText().toString().trim();
         final String address = etAddress.getText().toString().trim();
         final String contactNumber = etContactNumber.getText().toString().trim();
+        final String timings = etTimings.getText().toString().trim();
         final String location = txtLocation.getText().toString().trim();
         final float rating = ratingBar.getRating();
 
@@ -199,6 +212,10 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
             Toast.makeText(this,"Contact Number is Required", Toast.LENGTH_SHORT).show();
             return;
         }
+        if(timings.isEmpty()){
+            Toast.makeText(this,"Hotel Timings is Required", Toast.LENGTH_SHORT).show();
+            return;
+        }
         if(location.isEmpty()){
             Toast.makeText(this,"Location is Required", Toast.LENGTH_SHORT).show();
             return;
@@ -212,6 +229,10 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
             return;
         }
 
+        if (foodItemsBuilder.length() == 0) {
+            Toast.makeText(this, "At least one food item is required", Toast.LENGTH_SHORT).show();
+            return;
+        }
         final ProgressDialog progressDialog = new ProgressDialog(this);
         progressDialog.setMessage("Adding Recommendation...");
         progressDialog.show();
@@ -231,7 +252,7 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
                                     if (downloadTask.isSuccessful()) {
                                         String imageUrl = downloadTask.getResult().toString();
 
-                                        Recommendation1 recommendation = new Recommendation1(name, link, address, contactNumber, foodItemsBuilder.toString(), location, rating, imageUrl);
+                                        Recommendation1 recommendation = new Recommendation1(name, link, address, contactNumber, foodItemsBuilder.toString(), location, rating, imageUrl, timings);
 
                                         databaseReference.child(currentUserId).child("recommendation").push().setValue(recommendation)
                                                 .addOnCompleteListener(new OnCompleteListener<Void>() {
@@ -297,6 +318,7 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
         etLink.setText("");
         etAddress.setText("");
         etContactNumber.setText("");
+        etTimings.setText("");
         etFood.setText("");
         txtLocation.setText("");
         ratingBar.setRating(0);
