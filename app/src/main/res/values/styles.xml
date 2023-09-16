@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="GoldRatingBar" parent="Widget.AppCompat.RatingBar">
+        <item name="android:progressTint">@color/goldColor</item>
+    </style>
+</resources>

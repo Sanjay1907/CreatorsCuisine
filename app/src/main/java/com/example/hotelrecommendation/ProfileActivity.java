@@ -190,11 +190,18 @@ public class ProfileActivity extends AppCompatActivity {
         final String name = etName.getText().toString().trim();
         final String email = etEmail.getText().toString().trim();
 
-        // Check if name and email are not empty
-        if (TextUtils.isEmpty(name) || TextUtils.isEmpty(email)) {
-            Toast.makeText(this, "Name and email are required.", Toast.LENGTH_SHORT).show();
+        // Check if name is empty
+        if (TextUtils.isEmpty(name)) {
+            Toast.makeText(this, "Name is required.", Toast.LENGTH_SHORT).show();
             return;
         }
+
+        // Check if email is in a valid format
+        if (!isValidEmail(email)) {
+            Toast.makeText(this, "Please enter a valid email address.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
 
         progressDialog.show();
 
@@ -287,6 +294,10 @@ public class ProfileActivity extends AppCompatActivity {
                 });
     }
 
+    private boolean isValidEmail(String email) {
+        String emailPattern = "[a-zA-Z0-9._-]+@[a-zA-Z]+\\.+[a-zA-Z]+";
+        return email.matches(emailPattern);
+    }
     private void uploadNewProfileImage(final String imageFileName) {
         // Upload the new profile image with the generated filename
         final StorageReference imageReference = storageReference.child(imageFileName);

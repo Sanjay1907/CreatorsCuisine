@@ -7,16 +7,28 @@
     android:padding="16dp"
     tools:context=".RequestVerificationActivity">
 
+    <TextView
+        android:id="@+id/tvDocumentTypeLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:text="Choose Document Type"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:layout_marginTop="16dp" />
+
     <Spinner
         android:id="@+id/spinnerDocumentType"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_below="@+id/tvDocumentTypeLabel"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="8dp"
         android:layout_marginBottom="8dp"
         android:background="@android:drawable/btn_dropdown"
         android:prompt="@array/document_types"
-        android:spinnerMode="dropdown"/>
+        android:spinnerMode="dropdown" />
+
 
     <Button
         android:id="@+id/btnChooseDocument"
@@ -24,7 +36,8 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/spinnerDocumentType"
         android:layout_centerHorizontal="true"
-        android:text="Choose Document (PDF)"
+        android:text="Upload Document (PDF)"
+        android:backgroundTint="@color/colorPrimary"
         android:layout_marginTop="8dp" />
 
     <TextView
@@ -44,7 +57,8 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/tvSelectedDocument"
         android:layout_centerHorizontal="true"
-        android:text="Request Verification"
+        android:text="Submit Request"
+        android:backgroundTint="@color/colorPrimary"
         android:layout_marginTop="16dp" />
 
 </RelativeLayout>

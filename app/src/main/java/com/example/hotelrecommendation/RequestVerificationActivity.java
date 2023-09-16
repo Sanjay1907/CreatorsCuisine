@@ -125,7 +125,7 @@ public class RequestVerificationActivity extends AppCompatActivity {
                     String documentFileType = dataSnapshot.child("documentType").getValue(String.class);
 
                     // Update the TextView with the submitted document details
-                    tvSelectedDocument.setText("Already Submitted the Request.\nUploaded Document: " + documentFileName + "\nUploaded Document Type: " + documentFileType);
+                    tvSelectedDocument.setText("Already Submitted the Request.\nUploaded Document Type: " + documentFileType + "\nUploaded Document Name: " + documentFileName);
                 } else {
                     // The "request_verification" child node doesn't exist, indicating the form has not been submitted
                     formSubmitted = false;
@@ -211,7 +211,7 @@ public class RequestVerificationActivity extends AppCompatActivity {
                     });
         } else {
             Toast.makeText(RequestVerificationActivity.this,
-                    "Please select a PDF document", Toast.LENGTH_SHORT).show();
+                    "Please upload a PDF document", Toast.LENGTH_SHORT).show();
         }
     }
 

@@ -40,19 +40,20 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
     private static final int PICK_IMAGE_REQUEST = 1;
     private static final int PICK_LOCATION_REQUEST = 2;
     private ImageView profileImage;
-    private Button btnChooseImage, btnAddLocation, btnAddRecommendation;
+    private Button btnChooseImage, btnAddLocation, btnAddRecommendation, btnAddFoodItem;
     private EditText etName, etLink, etAddress, etContactNumber, etFood;
     private RatingBar ratingBar;
     private Uri imageUri;
     private FirebaseAuth mAuth;
     private DatabaseReference databaseReference;
     private StorageReference storageReference;
-    private TextView txtLocation;
+    private TextView txtLocation, tvAddedFoodItems;
     private MapView mapView;
     private GoogleMap googleMap;
     private double selectedLatitude;
     private double selectedLongitude;
     private String selectedLocationName;
+    private StringBuilder foodItemsBuilder; // To store food items.
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -97,6 +98,17 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
             @Override
             public void onClick(View v) {
                 addRecommendation();
+            }
+        });
+
+        btnAddFoodItem = findViewById(R.id.btnAddFoodItem);
+        tvAddedFoodItems = findViewById(R.id.tvAddedFoodItems);
+        foodItemsBuilder = new StringBuilder(); // Initialize the StringBuilder
+
+        btnAddFoodItem.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                addFoodItem();
             }
         });
     }
@@ -145,18 +157,58 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
         }
     }
 
+    private void addFoodItem() {
+        String foodItem = etFood.getText().toString().trim();
+
+        if (!foodItem.isEmpty()) {
+            // Append the food item to the StringBuilder
+            if (foodItemsBuilder.length() > 0) {
+                foodItemsBuilder.append(", "); // Add a comma if it's not the first item
+            }
+            foodItemsBuilder.append(foodItem);
+
+            // Update the TextView with the current list of food items
+            tvAddedFoodItems.setText("Must Try Food Items: " + foodItemsBuilder.toString());
+
+            // Clear the EditText
+            etFood.setText("");
+        }
+    }
 
     private void addRecommendation() {
         final String name = etName.getText().toString().trim();
         final String link = etLink.getText().toString().trim();
         final String address = etAddress.getText().toString().trim();
         final String contactNumber = etContactNumber.getText().toString().trim();
-        final String food = etFood.getText().toString().trim();
         final String location = txtLocation.getText().toString().trim();
         final float rating = ratingBar.getRating();
 
-        if (name.isEmpty() || link.isEmpty() || address.isEmpty() || contactNumber.isEmpty() || food.isEmpty() || location.isEmpty() || imageUri == null) {
-            Toast.makeText(this, "Please fill in all fields, select a location, and choose an image", Toast.LENGTH_SHORT).show();
+        if(imageUri==null){
+            Toast.makeText(this,"Hotel Image is Required", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if(name.isEmpty()){
+            Toast.makeText(this,"Hotel Name is Required", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if(address.isEmpty()){
+            Toast.makeText(this,"Hotel Address is Required", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if(contactNumber.isEmpty()){
+            Toast.makeText(this,"Contact Number is Required", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if(location.isEmpty()){
+            Toast.makeText(this,"Location is Required", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (rating == 0) {
+            Toast.makeText(this, "Please select a rating", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (!isValidUrl(link)) {
+            Toast.makeText(this, "Please enter a valid URL in the Link field", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -179,7 +231,7 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
                                     if (downloadTask.isSuccessful()) {
                                         String imageUrl = downloadTask.getResult().toString();
 
-                                        Recommendation1 recommendation = new Recommendation1(name, link, address, contactNumber, food, location, rating, imageUrl);
+                                        Recommendation1 recommendation = new Recommendation1(name, link, address, contactNumber, foodItemsBuilder.toString(), location, rating, imageUrl);
 
                                         databaseReference.child(currentUserId).child("recommendation").push().setValue(recommendation)
                                                 .addOnCompleteListener(new OnCompleteListener<Void>() {
@@ -189,7 +241,7 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
                                                         if (addTask.isSuccessful()) {
                                                             Toast.makeText(recommendation.this, "Recommendation added successfully", Toast.LENGTH_SHORT).show();
                                                             Intent intent = new Intent(recommendation.this, MainActivity.class);
-                                                            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                                                            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP); // Clear the back stack
                                                             startActivity(intent);
                                                             finish();
                                                         } else {
@@ -209,6 +261,14 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
                         }
                     }
                 });
+    }
+
+    private boolean isValidUrl(String url) {
+        // Define a regular expression for a valid URL
+        String urlRegex = "^(http(s)?://)?[\\w.-]+\\.[a-zA-Z]{2,4}(/\\S*)?$";
+
+        // Check if the input matches the regular expression
+        return url.matches(urlRegex);
     }
 
     private String getLocationName(double latitude, double longitude) {
@@ -242,6 +302,8 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
         ratingBar.setRating(0);
         profileImage.setImageResource(R.drawable.default_profile_image);
         googleMap.clear();
+        tvAddedFoodItems.setText(""); // Clear the added food items TextView
+        foodItemsBuilder.setLength(0); // Clear the food items StringBuilder
     }
 
     @Override

@@ -2,6 +2,7 @@ package com.example.hotelrecommendation;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.location.Address;
 import android.location.Geocoder;
 import android.net.Uri;
 import android.os.Bundle;
@@ -15,6 +16,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+
 import com.bumptech.glide.Glide;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -30,7 +32,6 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
-
 import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
@@ -39,25 +40,28 @@ public class EditRecommendationActivity extends AppCompatActivity implements OnM
 
     private static final int PICK_IMAGE_REQUEST = 1;
     private static final int LOCATION_SELECTION_REQUEST = 2;
-
+    private ImageView profileImage;
+    private Button btnChooseImage, btnAddLocation, btnUpdateRecommendation, btnAddFoodItem;
     private EditText etName, etLink, etAddress, etContactNumber, etFood;
     private RatingBar ratingBar;
-    private TextView txtLocation;
-    private MapView mapView;
-    private GoogleMap googleMap;
-    private String recommendationKey;
-    private ImageView profileImage;
-
     private Uri imageUri;
     private FirebaseAuth mAuth;
     private DatabaseReference databaseReference;
     private StorageReference storageReference;
-    private double selectedLatitude = 0.0;
-    private double selectedLongitude = 0.0;
+    private TextView txtLocation, tvAddedFoodItems;
+    private MapView mapView;
+    private GoogleMap googleMap;
+    private double selectedLatitude;
+    private double selectedLongitude;
+    private String selectedLocationName;
+    private StringBuilder foodItemsBuilder; // To store food items.
+    private String recommendationKey;
+
     private Geocoder geocoder;
 
+
     @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit_recommendation);
 
@@ -67,15 +71,20 @@ public class EditRecommendationActivity extends AppCompatActivity implements OnM
         etContactNumber = findViewById(R.id.etContactNumber);
         etFood = findViewById(R.id.etfood);
         ratingBar = findViewById(R.id.ratingBar);
+        btnChooseImage = findViewById(R.id.btnChooseImage);
+        btnAddLocation = findViewById(R.id.btnlocation);
+        btnUpdateRecommendation = findViewById(R.id.btnUpdateRecommendation);
         txtLocation = findViewById(R.id.txtLocation);
-        mapView = findViewById(R.id.mapView);
         profileImage = findViewById(R.id.profileImage);
-        Button btnChooseImage = findViewById(R.id.btnChooseImage);
+        mapView = findViewById(R.id.mapView);
+        tvAddedFoodItems = findViewById(R.id.tvAddedFoodItems);
+        btnAddFoodItem = findViewById(R.id.btnAddFoodItem);
+        geocoder = new Geocoder(this, Locale.getDefault());
 
         mapView.onCreate(savedInstanceState);
         mapView.getMapAsync(this);
 
-        geocoder = new Geocoder(this, Locale.getDefault());
+        foodItemsBuilder = new StringBuilder();
 
         mAuth = FirebaseAuth.getInstance();
         databaseReference = FirebaseDatabase.getInstance().getReference("Creators");
@@ -97,7 +106,6 @@ public class EditRecommendationActivity extends AppCompatActivity implements OnM
             etLink.setText(link);
             etAddress.setText(address);
             etContactNumber.setText(contactNumber);
-            etFood.setText(food);
             ratingBar.setRating(rating);
 
             Glide.with(this).load(imageUrl).placeholder(R.drawable.default_profile_image).into(profileImage);
@@ -113,15 +121,13 @@ public class EditRecommendationActivity extends AppCompatActivity implements OnM
                 googleMap.addMarker(new MarkerOptions().position(locationLatLng).title("Hotel Location"));
                 googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(locationLatLng, 15));
             }
-        }
 
-        Button btnUpdateRecommendation = findViewById(R.id.btnUpdateRecommendation);
-        btnUpdateRecommendation.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                updateRecommendation();
+            // Display food items in TextView
+            if (food != null && !food.isEmpty()) {
+                tvAddedFoodItems.setVisibility(View.VISIBLE);
+                tvAddedFoodItems.setText("Must Try Food Items: " + food);
             }
-        });
+        }
 
         btnChooseImage.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -130,13 +136,43 @@ public class EditRecommendationActivity extends AppCompatActivity implements OnM
             }
         });
 
-        Button btnSelectLocation = findViewById(R.id.btnlocation);
-        btnSelectLocation.setOnClickListener(new View.OnClickListener() {
+        btnAddLocation.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 selectLocation();
             }
         });
+
+        btnAddFoodItem.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                addFoodItem();
+            }
+        });
+
+        btnUpdateRecommendation.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                updateRecommendation();
+            }
+        });
+    }
+
+    private void addFoodItem() {
+        String foodItem = etFood.getText().toString().trim();
+
+        if (!foodItem.isEmpty()) {
+            // Append the food item to the TextView with a comma if it's not the first item
+            if (tvAddedFoodItems.getVisibility() == View.GONE) {
+                tvAddedFoodItems.setVisibility(View.VISIBLE);
+            } else {
+                tvAddedFoodItems.append(", ");
+            }
+            tvAddedFoodItems.append(foodItem);
+
+            // Clear the EditText
+            etFood.setText("");
+        }
     }
 
     private void chooseImage() {
@@ -203,7 +239,7 @@ public class EditRecommendationActivity extends AppCompatActivity implements OnM
         String updatedLink = etLink.getText().toString().trim();
         String updatedAddress = etAddress.getText().toString().trim();
         String updatedContactNumber = etContactNumber.getText().toString().trim();
-        String updatedFood = etFood.getText().toString().trim();
+        String updatedFood = tvAddedFoodItems.getText().toString().trim().replace("Must Try Food Items: ", "");
         float updatedRating = ratingBar.getRating();
 
         DatabaseReference recommendationRef = FirebaseDatabase.getInstance().getReference("Creators")
