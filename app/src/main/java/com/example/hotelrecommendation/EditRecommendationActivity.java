@@ -27,14 +27,17 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
+import com.google.firebase.database.DataSnapshot;
 
 public class EditRecommendationActivity extends AppCompatActivity implements OnMapReadyCallback {
 
@@ -56,9 +59,9 @@ public class EditRecommendationActivity extends AppCompatActivity implements OnM
     private String selectedLocationName;
     private StringBuilder foodItemsBuilder; // To store food items.
     private String recommendationKey;
+    private DatabaseReference recommendationRef;
 
     private Geocoder geocoder;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -156,6 +159,40 @@ public class EditRecommendationActivity extends AppCompatActivity implements OnM
                 updateRecommendation();
             }
         });
+
+        recommendationRef = FirebaseDatabase.getInstance().getReference("Creators")
+                .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
+                .child("recommendation")
+                .child(recommendationKey);
+
+        addRecommendationValueListener();
+    }
+
+    private void addRecommendationValueListener() {
+        recommendationRef.child("location").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    String locationString = dataSnapshot.getValue(String.class);
+                    if (locationString != null) {
+                        String[] latLngParts = locationString.split(", ");
+                        double latitude = Double.parseDouble(latLngParts[0].substring("Latitude: ".length()));
+                        double longitude = Double.parseDouble(latLngParts[1].substring("Longitude: ".length()));
+
+                        LatLng locationLatLng = new LatLng(latitude, longitude);
+                        if (googleMap != null) {
+                            googleMap.addMarker(new MarkerOptions().position(locationLatLng).title("Hotel Location"));
+                            googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(locationLatLng, 15));
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                // Handle database errors if needed
+            }
+        });
     }
 
     private void addFoodItem() {
@@ -219,9 +256,9 @@ public class EditRecommendationActivity extends AppCompatActivity implements OnM
 
     private String getAddressFromCoordinates(double latitude, double longitude) {
         try {
-            List<android.location.Address> addresses = geocoder.getFromLocation(latitude, longitude, 1);
+            List<Address> addresses = geocoder.getFromLocation(latitude, longitude, 1);
             if (addresses != null && addresses.size() > 0) {
-                android.location.Address address = addresses.get(0);
+                Address address = addresses.get(0);
                 StringBuilder addressText = new StringBuilder();
                 for (int i = 0; i <= address.getMaxAddressLineIndex(); i++) {
                     addressText.append(address.getAddressLine(i)).append(" ");
@@ -269,9 +306,9 @@ public class EditRecommendationActivity extends AppCompatActivity implements OnM
             final StorageReference imageReference = storageReference.child(updatedName + "_" + currentUserId + ".jpg");
 
             DatabaseReference oldImageUrlRef = recommendationRef.child("imageUrl");
-            oldImageUrlRef.get().addOnCompleteListener(new OnCompleteListener<com.google.firebase.database.DataSnapshot>() {
+            oldImageUrlRef.get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
                 @Override
-                public void onComplete(@NonNull Task<com.google.firebase.database.DataSnapshot> task) {
+                public void onComplete(@NonNull Task<DataSnapshot> task) {
                     if (task.isSuccessful() && task.getResult() != null) {
                         String oldImageUrl = task.getResult().getValue(String.class);
                         if (oldImageUrl != null) {
