@@ -13,6 +13,8 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
+
 import com.bumptech.glide.Glide;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -38,7 +40,7 @@ public class ProfileActivity extends AppCompatActivity {
 
     private EditText etName, etEmail, etContactNumber;
     private ImageView profileImage;
-    private Button btnChooseImage, btnSaveProfile;
+    private Button btnChooseImage, btnSaveProfile, btngetverified;
     private Uri imageUri;
     private FirebaseAuth mAuth;
     private DatabaseReference databaseReference;
@@ -56,6 +58,7 @@ public class ProfileActivity extends AppCompatActivity {
         profileImage = findViewById(R.id.profileImage);
         btnChooseImage = findViewById(R.id.btnChooseImage);
         btnSaveProfile = findViewById(R.id.btnUpdateProfile);
+        btngetverified = findViewById(R.id.btngetverified);
 
         mAuth = FirebaseAuth.getInstance();
         databaseReference = FirebaseDatabase.getInstance().getReference("Creators")
@@ -109,6 +112,32 @@ public class ProfileActivity extends AppCompatActivity {
             }
         });
 
+        // Check the value of "verification" child and update the button text
+        DatabaseReference verificationReference = databaseReference.child("verification");
+        verificationReference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    int verificationValue = dataSnapshot.getValue(Integer.class);
+                    if (verificationValue == 1) {
+                        btngetverified.setText("Verified");
+                        int greenColor = ContextCompat.getColor(ProfileActivity.this, R.color.green);
+                        btngetverified.setBackgroundColor(greenColor);
+                    } else {
+                        btngetverified.setText("Get verified");
+                    }
+                } else {
+                    btngetverified.setText("Get verified");
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                // Handle the error, if any.
+            }
+        });
+
+
         btnChooseImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -122,8 +151,23 @@ public class ProfileActivity extends AppCompatActivity {
                 saveProfile();
             }
         });
-    }
+        btngetverified.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Check the text on the button
+                if (btngetverified.getText().toString().equals("Get verified")) {
+                    // If it's "Get verified," navigate to RequestVerificationActivity
+                    Intent requestVerificationIntent = new Intent(ProfileActivity.this, RequestVerificationActivity.class);
+                    startActivity(requestVerificationIntent);
+                } else if (btngetverified.getText().toString().equals("Verified")) {
+                    // If it's "Verified," do nothing
+                    // You can optionally show a message to inform the user they are already verified.
+                    Toast.makeText(ProfileActivity.this, "Your Profile has been already verified.", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
 
+    }
     private void chooseImage() {
         Intent intent = new Intent();
         intent.setType("image/*");
