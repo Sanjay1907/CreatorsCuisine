@@ -111,7 +111,7 @@ public class EditRecommendationActivity extends AppCompatActivity implements OnM
             etContactNumber.setText(contactNumber);
             ratingBar.setRating(rating);
 
-            Glide.with(this).load(imageUrl).placeholder(R.drawable.default_profile_image).into(profileImage);
+            Glide.with(this).load(imageUrl).placeholder(R.drawable.default_hotel_img).into(profileImage);
 
             txtLocation.setText(location);
 

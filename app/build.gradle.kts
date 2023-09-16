@@ -47,5 +47,4 @@ dependencies {
     implementation("com.google.android.material:material:1.9.0")
     implementation("com.squareup.picasso:picasso:2.71828")
     implementation("com.google.android.gms:play-services-maps:18.1.0")
-
 }
