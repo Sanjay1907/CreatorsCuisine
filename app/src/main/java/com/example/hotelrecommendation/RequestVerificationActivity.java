@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.OpenableColumns;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -178,48 +179,73 @@ public class RequestVerificationActivity extends AppCompatActivity {
 
     private void uploadPDF() {
         if (pdfUri != null) {
-            progressDialog.show(); // Show the progress dialog
+            long maxFileSize = 2 * 1024 * 1024; // 2MB in bytes
 
-            final String documentType = spinnerDocumentType.getSelectedItem().toString();
-            final String userId = mAuth.getCurrentUser().getUid();
-            final String fileName = userId + "_" + documentType + ".pdf";
+            // Calculate the file size
+            long fileSize = 0;
+            try {
+                Cursor cursor = getContentResolver().query(pdfUri, null, null, null, null);
+                if (cursor != null && cursor.moveToFirst()) {
+                    int sizeIndex = cursor.getColumnIndex(OpenableColumns.SIZE);
+                    fileSize = cursor.getLong(sizeIndex);
+                    cursor.close();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
 
-            StorageReference fileReference = storageReference.child(fileName);
+            if (fileSize <= maxFileSize) { // Check if the file size is within the limit
+                progressDialog.show(); // Show the progress dialog
 
-            fileReference.putFile(pdfUri)
-                    .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                        @Override
-                        public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                            // Document upload successful, update database
-                            fileReference.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
-                                @Override
-                                public void onSuccess(Uri downloadUri) {
-                                    String documentUrl = downloadUri.toString();
-                                    saveDocumentData(userId, documentType, documentUrl, fileName);
-                                    progressDialog.dismiss(); // Dismiss the progress dialog
-                                }
-                            });
-                        }
-                    })
-                    .addOnFailureListener(new OnFailureListener() {
-                        @Override
-                        public void onFailure(@NonNull Exception e) {
-                            progressDialog.dismiss(); // Dismiss the progress dialog
-                            Toast.makeText(RequestVerificationActivity.this,
-                                    "Document upload failed", Toast.LENGTH_SHORT).show();
-                        }
-                    });
+                final String documentType = spinnerDocumentType.getSelectedItem().toString();
+                final String userId = mAuth.getCurrentUser().getUid();
+                final String fileName = userId + "_" + documentType + ".pdf";
+
+                StorageReference fileReference = storageReference.child(fileName);
+
+                fileReference.putFile(pdfUri)
+                        .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                            @Override
+                            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                                // Document upload successful, update database
+                                fileReference.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                                    @Override
+                                    public void onSuccess(Uri downloadUri) {
+                                        String documentUrl = downloadUri.toString();
+                                        saveDocumentData(userId, documentType, documentUrl, fileName);
+                                        progressDialog.dismiss(); // Dismiss the progress dialog
+                                    }
+                                });
+                            }
+                        })
+                        .addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                progressDialog.dismiss(); // Dismiss the progress dialog
+                                Toast.makeText(RequestVerificationActivity.this,
+                                        "Document upload failed", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+            } else {
+                // File size exceeds the limit
+                Toast.makeText(RequestVerificationActivity.this,
+                        "Please upload a PDF document of size less than or equal to 2MB", Toast.LENGTH_SHORT).show();
+            }
         } else {
             Toast.makeText(RequestVerificationActivity.this,
-                    "Please upload a PDF document", Toast.LENGTH_SHORT).show();
+                    "Please select a PDF document", Toast.LENGTH_SHORT).show();
         }
     }
 
+
+
     private void saveDocumentData(String userId, String documentType, String documentUrl, String documentFileName) {
+
         DatabaseReference userReference = databaseReference.child(userId);
         userReference.child("documentType").setValue(documentType);
         userReference.child("documentFileName").setValue(documentFileName);
         userReference.child("documentUrl").setValue(documentUrl);
+        userReference.child("verification").setValue("0");
 
         progressDialog.dismiss(); // Dismiss the progress dialog
 

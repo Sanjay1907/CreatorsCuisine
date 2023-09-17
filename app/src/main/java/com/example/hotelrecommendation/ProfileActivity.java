@@ -121,14 +121,18 @@ public class ProfileActivity extends AppCompatActivity {
             }
         });
 
-        // Check the value of "verification" child and update the button text
-        DatabaseReference verificationReference = databaseReference.child("verification");
+        // Inside the onCreate method of ProfileActivity
+        // Check the value of "verification" child inside "request_verification"
+        DatabaseReference verificationReference = databaseReference.child("request_verification")
+                .child(mAuth.getCurrentUser().getUid()) // Assuming the user ID matches the key in request_verification
+                .child("verification");
+
         verificationReference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {
-                    int verificationValue = dataSnapshot.getValue(Integer.class);
-                    if (verificationValue == 1) {
+                    String verificationValue = dataSnapshot.getValue(String.class); // Assuming verification is stored as a String
+                    if ("1".equals(verificationValue)) { // Check if it equals "1" (verified)
                         btngetverified.setText("Verified");
                         int greenColor = ContextCompat.getColor(ProfileActivity.this, R.color.green);
                         btngetverified.setBackgroundColor(greenColor);

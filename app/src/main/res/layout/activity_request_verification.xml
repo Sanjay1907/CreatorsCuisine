@@ -30,11 +30,20 @@
         android:spinnerMode="dropdown" />
 
 
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/spinnerDocumentType"
+        android:id="@+id/sizeview"
+        android:text="**Maximum Size of pdf should be 2MB**"
+        android:textSize="12dp"
+        android:textStyle="italic"
+        android:textColor="@color/quantum_grey"/>
     <Button
         android:id="@+id/btnChooseDocument"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/spinnerDocumentType"
+        android:layout_below="@+id/sizeview"
         android:layout_centerHorizontal="true"
         android:text="Upload Document (PDF)"
         android:backgroundTint="@color/colorPrimary"
