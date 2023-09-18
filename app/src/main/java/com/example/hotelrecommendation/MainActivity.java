@@ -129,37 +129,49 @@ public class MainActivity extends AppCompatActivity {
         btnLogout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                View dialogView = getLayoutInflater().inflate(R.layout.custom_dialog, null);
+                // Inflate the custom logout dialog layout
+                View dialogView = getLayoutInflater().inflate(R.layout.dialog_custom_logout, null);
 
+                // Initialize the custom dialog components
                 AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
                 builder.setView(dialogView);
                 AlertDialog alertDialog = builder.create();
 
-                TextView dialogTitle = dialogView.findViewById(R.id.dialogTitle);
-                TextView dialogMessage = dialogView.findViewById(R.id.dialogMessage);
-                Button dialogButton = dialogView.findViewById(R.id.dialogButton);
+                // Find the buttons in the custom dialog layout
+                Button btnCancel = dialogView.findViewById(R.id.btnCancel);
+                Button btnLogout = dialogView.findViewById(R.id.btnLogout);
 
-                dialogTitle.setText("Logout");
-                dialogMessage.setText("Are you sure you want to logout?");
-
-                dialogButton.setOnClickListener(new View.OnClickListener() {
+                // Set click listeners for the custom dialog buttons
+                btnCancel.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
+                        // Dismiss the dialog if "Cancel" is clicked
+                        alertDialog.dismiss();
+                    }
+                });
+
+                btnLogout.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        // User confirmed logout, show a progress dialog
                         ProgressDialog progressDialog = new ProgressDialog(MainActivity.this);
                         progressDialog.setMessage("Logging out...");
                         progressDialog.setCancelable(false);
                         progressDialog.show();
 
+                        // Perform the logout operation
                         mAuth.signOut();
                         Intent intent = new Intent(getApplicationContext(), SendOTPActivity.class);
                         startActivity(intent);
-                        progressDialog.dismiss();
+                        progressDialog.dismiss(); // Dismiss the progress dialog
                         finish();
 
+                        // Dismiss the custom dialog
                         alertDialog.dismiss();
                     }
                 });
 
+                // Show the custom dialog
                 alertDialog.show();
             }
         });
