@@ -95,6 +95,16 @@
             android:inputType="number"
             android:maxLength="10"/>
 
+        <Button
+            android:id="@+id/btnChooseTimings"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Choose Timings"
+            android:textSize="18dp"
+            android:layout_marginLeft="20dp"
+            android:layout_marginTop="10dp"
+            android:backgroundTint="@color/colorPrimary" />
+
         <EditText
             android:id="@+id/etTimings"
             android:layout_width="match_parent"

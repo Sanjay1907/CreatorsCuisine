@@ -1,6 +1,7 @@
 package com.example.hotelrecommendation;
 
 import android.app.ProgressDialog;
+import android.app.TimePickerDialog;
 import android.content.Intent;
 import android.location.Address;
 import android.location.Geocoder;
@@ -12,6 +13,7 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.RatingBar;
 import android.widget.TextView;
+import android.widget.TimePicker;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -32,6 +34,8 @@ import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 
@@ -42,6 +46,13 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
     private ImageView profileImage;
     private Button btnChooseImage, btnAddLocation, btnAddRecommendation, btnAddFoodItem;
     private EditText etName, etLink, etAddress, etContactNumber, etFood, etTimings;
+    private Button btnChooseTimings;
+
+    private int startHour, startMinute, endHour, endMinute;
+    private SimpleDateFormat timeFormat;
+    private Calendar calendar;
+    private boolean isChoosingStartTime = true;
+
     private RatingBar ratingBar;
     private Uri imageUri;
     private FirebaseAuth mAuth;
@@ -76,6 +87,10 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
         mapView.onCreate(savedInstanceState);
         mapView.getMapAsync(this);
         etTimings = findViewById(R.id.etTimings);
+        btnChooseTimings = findViewById(R.id.btnChooseTimings); // Initialize the btnChooseTimings Button
+        timeFormat = new SimpleDateFormat("HH:mm", Locale.getDefault());
+        calendar = Calendar.getInstance();
+        etTimings.setEnabled(false);
 
         mAuth = FirebaseAuth.getInstance();
         databaseReference = FirebaseDatabase.getInstance().getReference("Creators");
@@ -85,6 +100,13 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
             @Override
             public void onClick(View v) {
                 chooseImage();
+            }
+        });
+
+        btnChooseTimings.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showTimePickerDialog();
             }
         });
 
@@ -114,6 +136,52 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
                 addFoodItem();
             }
         });
+    }
+
+    private void showTimePickerDialog() {
+        int currentHour = calendar.get(Calendar.HOUR_OF_DAY);
+        int currentMinute = calendar.get(Calendar.MINUTE);
+
+        if (isChoosingStartTime) {
+            // User is choosing the start time
+            TimePickerDialog timePickerDialog = new TimePickerDialog(this,
+                    new TimePickerDialog.OnTimeSetListener() {
+                        @Override
+                        public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+                            startHour = hourOfDay;
+                            startMinute = minute;
+                            etTimings.setText(formatTime(startHour, startMinute) + " - ");
+                            isChoosingStartTime = false; // Now, the user will choose close time
+                            btnChooseTimings.setText("Choose Closing Time");
+                            showToast("Choose hotel closing time");
+                        }
+                    }, currentHour, currentMinute, true);
+            timePickerDialog.show();
+        } else {
+            // User is choosing the close time
+            TimePickerDialog timePickerDialog = new TimePickerDialog(this,
+                    new TimePickerDialog.OnTimeSetListener() {
+                        @Override
+                        public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+                            endHour = hourOfDay;
+                            endMinute = minute;
+                            etTimings.append(formatTime(endHour, endMinute));
+                            isChoosingStartTime = true; // Reset to choose start time next time
+                            btnChooseTimings.setText("Choose Timings");
+                        }
+                    }, currentHour, currentMinute, true);
+            timePickerDialog.show();
+        }
+    }
+
+    private String formatTime(int hourOfDay, int minute) {
+        calendar.set(Calendar.HOUR_OF_DAY, hourOfDay);
+        calendar.set(Calendar.MINUTE, minute);
+        return timeFormat.format(calendar.getTime());
+    }
+
+    private void showToast(String message) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
 
     private void chooseImage() {
