@@ -46,7 +46,7 @@ public class LocationSelectionActivity extends AppCompatActivity implements OnMa
         setContentView(R.layout.activity_location_selection);
 
         // Initialize Places API with your API key
-        Places.initialize(getApplicationContext(), "AIzaSyBjElpMHf-AjvF-84J3Gpt9ykXFYksHD98");
+        Places.initialize(getApplicationContext(), "AIzaSyDHoXOg6fB7_Aj9u9hCCkM76W0CzN5pZHE");
 
         mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.mapView);
         mapFragment.getMapAsync(this);
@@ -72,10 +72,8 @@ public class LocationSelectionActivity extends AppCompatActivity implements OnMa
         // Set up Autocomplete Support Fragment
         AutocompleteSupportFragment autocompleteFragment = (AutocompleteSupportFragment)
                 getSupportFragmentManager().findFragmentById(R.id.autocomplete_fragment);
-
-        // Specify the types of place data to return
+        // Specify the types of place data to return (remove setTypeFilter)
         autocompleteFragment.setPlaceFields(Arrays.asList(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG));
-        autocompleteFragment.setTypeFilter(TypeFilter.CITIES);
 
         // Set a PlaceSelectionListener to handle user selection
         autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
