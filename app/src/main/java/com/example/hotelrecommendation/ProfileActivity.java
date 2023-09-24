@@ -238,41 +238,35 @@ public class ProfileActivity extends AppCompatActivity {
         }
 
         progressDialog.show();
+        // Check if the name is already taken
+        DatabaseReference usersReference = FirebaseDatabase.getInstance().getReference("Creators");
+        usersReference.orderByChild("name").equalTo(name).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    progressDialog.dismiss();
+                    Toast.makeText(ProfileActivity.this, "This name is already taken. Please try a different name.", Toast.LENGTH_SHORT).show();
+                } else {
+                    // Generate a unique image filename using "userid_name" format
+                    final String imageFileName = mAuth.getCurrentUser().getUid() + "_" + name + ".jpg";
 
-        // Generate a unique image filename using "userid_name" format
-        final String imageFileName = mAuth.getCurrentUser().getUid() + "_" + name + ".jpg";
-
-        // Check if there's a change in the profile image URL
-        if (imageUri != null) {
-            // An image is selected, proceed with image upload
-
-            // Upload profile image to Firebase Storage with the generated filename
-            uploadNewProfileImage(imageFileName);
-        } else {
-            // No image selected, update the profile without changing the image
-
-            // Fetch the current image URL from the database
-            databaseReference.child("profileImage").addListenerForSingleValueEvent(new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                    String currentImageUrl = dataSnapshot.getValue(String.class);
-
-                    if (currentImageUrl != null && !currentImageUrl.isEmpty()) {
-                        // There's a current image URL, update the profile without changing the image
-                        updateUserProfile(name, email, channelname, channellink, instaid, currentImageUrl);
+                    // Check if there's a change in the profile image URL
+                    if (imageUri != null) {
+                        // An image is selected, proceed with image upload
+                        uploadNewProfileImage(imageFileName);
                     } else {
-                        // There's no current image URL, update the profile without an image
+                        // No image selected, update the profile without changing the image
                         updateUserProfile(name, email, channelname, channellink, instaid, "");
                     }
                 }
+            }
 
-                @Override
-                public void onCancelled(@NonNull DatabaseError databaseError) {
-                    progressDialog.dismiss();
-                    Toast.makeText(ProfileActivity.this, "Profile update failed", Toast.LENGTH_SHORT).show();
-                }
-            });
-        }
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                progressDialog.dismiss();
+                Toast.makeText(ProfileActivity.this, "Profile update failed", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private boolean isValidUrl(String url) {
