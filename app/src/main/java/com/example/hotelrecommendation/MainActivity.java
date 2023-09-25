@@ -55,7 +55,7 @@ public class MainActivity extends AppCompatActivity {
         databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                if (!dataSnapshot.hasChild("name")) {
+                if (!dataSnapshot.hasChild("name2")) {
                     Intent profileIntent = new Intent(MainActivity.this, ProfileActivity.class);
                     startActivity(profileIntent);
                     finish();
@@ -80,7 +80,7 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                     if (dataSnapshot.exists()) {
-                        String displayName = dataSnapshot.child("name").getValue(String.class);
+                        String displayName = dataSnapshot.child("name2").getValue(String.class);
                         name.setText(displayName);
                     } else {
                         Toast.makeText(MainActivity.this, "Creators data does not exist in the database", Toast.LENGTH_SHORT).show();
