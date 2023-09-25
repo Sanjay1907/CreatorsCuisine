@@ -30,6 +30,7 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -37,7 +38,7 @@ public class ProfileActivity extends AppCompatActivity {
 
     private static final int PICK_IMAGE_REQUEST = 1;
 
-    private EditText etName, etEmail, etContactNumber, etChannelname, etChannellink, etinstaid, etFullName;
+    private EditText etName, etEmail, etContactNumber, etChannelname, etChannellink, etinstaid, etName2;
     private ImageView profileImage;
     private Button btnChooseImage, btnSaveProfile, btngetverified;
     private Uri imageUri;
@@ -52,9 +53,9 @@ public class ProfileActivity extends AppCompatActivity {
         setContentView(R.layout.activity_profile);
 
         etName = findViewById(R.id.etName);
+        etName2 = findViewById(R.id.etName2);
         etEmail = findViewById(R.id.etEmail);
         etContactNumber = findViewById(R.id.etContactNumber);
-        etFullName = findViewById(R.id.etFullName); // Full Name EditText
         profileImage = findViewById(R.id.profileImage);
         btnChooseImage = findViewById(R.id.btnChooseImage);
         btnSaveProfile = findViewById(R.id.btnUpdateProfile);
@@ -77,20 +78,20 @@ public class ProfileActivity extends AppCompatActivity {
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {
                     String nameFromDb = dataSnapshot.child("name").getValue(String.class);
+                    String name2FromDb = dataSnapshot.child("name2").getValue(String.class);
                     String emailFromDb = dataSnapshot.child("email").getValue(String.class);
                     String chname = dataSnapshot.child("Youtube Channel name").getValue(String.class);
                     String chlink = dataSnapshot.child("Youtube Channel Link").getValue(String.class);
                     String insta = dataSnapshot.child("Instagram id").getValue(String.class);
-                    String fullName = dataSnapshot.child("name2").getValue(String.class); // Get full name
                     String imageUrlFromDb = dataSnapshot.child("profileImage").getValue(String.class);
 
                     // Autofill the fields
                     etName.setText(nameFromDb);
+                    etName2.setText(name2FromDb);
                     etEmail.setText(emailFromDb);
                     etChannelname.setText(chname);
                     etChannellink.setText(chlink);
                     etinstaid.setText(insta);
-                    etFullName.setText(fullName); // Set full name
 
                     // Load profile image if available using Glide
                     if (imageUrlFromDb != null && !imageUrlFromDb.isEmpty()) {
@@ -152,6 +153,7 @@ public class ProfileActivity extends AppCompatActivity {
             }
         });
 
+
         btnChooseImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -165,7 +167,6 @@ public class ProfileActivity extends AppCompatActivity {
                 saveProfile();
             }
         });
-
         btngetverified.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -181,8 +182,8 @@ public class ProfileActivity extends AppCompatActivity {
                 }
             }
         });
-    }
 
+    }
     private void chooseImage() {
         Intent intent = new Intent();
         intent.setType("image/*");
@@ -202,19 +203,20 @@ public class ProfileActivity extends AppCompatActivity {
 
     // Inside the saveProfile method
     private void saveProfile() {
-        final String name = etName.getText().toString().trim();
+        final String newName = etName.getText().toString().trim();
+        final String name2 = etName2.getText().toString().trim();
         final String email = etEmail.getText().toString().trim();
         final String channelname = etChannelname.getText().toString().trim();
         final String channellink = etChannellink.getText().toString().trim();
         final String instaid = etinstaid.getText().toString().trim();
-        final String fullName = etFullName.getText().toString().trim(); // Get full name
 
-        // Check if name is empty
-        if (TextUtils.isEmpty(name)) {
+        // Check if newName is empty
+        if (TextUtils.isEmpty(newName)) {
             Toast.makeText(this, "UserName is required.", Toast.LENGTH_SHORT).show();
             return;
         }
-        if (TextUtils.isEmpty(fullName)) {
+
+        if (TextUtils.isEmpty(name2)) {
             Toast.makeText(this, "Name is required.", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -230,7 +232,6 @@ public class ProfileActivity extends AppCompatActivity {
             Toast.makeText(this, "Either YouTube channel link or Instagram ID is mandatory.", Toast.LENGTH_SHORT).show();
             return;
         }
-
         // Check if email is in a valid format
         if (!isValidUrl(channellink)) {
             Toast.makeText(this, "Please enter a valid Youtube channel link.", Toast.LENGTH_SHORT).show();
@@ -244,37 +245,38 @@ public class ProfileActivity extends AppCompatActivity {
         }
 
         progressDialog.show();
-        // Check if the name is already taken
-        DatabaseReference currentUserReference = FirebaseDatabase.getInstance().getReference("Creators")
-                .child(mAuth.getCurrentUser().getUid())
-                .child("name");
 
-        currentUserReference.addListenerForSingleValueEvent(new ValueEventListener() {
+        // Check if the name has been changed
+        DatabaseReference usersReference = FirebaseDatabase.getInstance().getReference("Creators");
+        usersReference.child(mAuth.getCurrentUser().getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {
-                    String currentName = dataSnapshot.getValue(String.class);
+                    String currentName = dataSnapshot.child("name").getValue(String.class);
 
-                    // Check if the name is already taken, but only if it's changed
-                    if (!currentName.equals(name)) {
-                        DatabaseReference usersReference = FirebaseDatabase.getInstance().getReference("Creators");
-                        usersReference.orderByChild("name").equalTo(name).addListenerForSingleValueEvent(new ValueEventListener() {
+                    // Check if the newName is the same as the current name
+                    if (newName.equals(currentName)) {
+                        // The name hasn't been changed, update the profile without checking availability
+                        updateUserProfile(newName, name2, email, channelname, channellink, instaid, "");
+                    } else {
+                        // The name has been changed, check if it's available
+                        usersReference.orderByChild("name").equalTo(newName).addListenerForSingleValueEvent(new ValueEventListener() {
                             @Override
                             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                                 if (dataSnapshot.exists()) {
                                     progressDialog.dismiss();
-                                    Toast.makeText(ProfileActivity.this, "This Username is already taken. ", Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(ProfileActivity.this, "This Username is already taken.", Toast.LENGTH_SHORT).show();
                                 } else {
                                     // Generate a unique image filename using "userid_name" format
-                                    final String imageFileName = mAuth.getCurrentUser().getUid() + "_" + name + ".jpg";
+                                    final String imageFileName = mAuth.getCurrentUser().getUid() + "_" + newName + ".jpg";
 
                                     // Check if there's a change in the profile image URL
                                     if (imageUri != null) {
                                         // An image is selected, proceed with image upload
-                                        uploadNewProfileImage(imageFileName, name, email, channelname, channellink, instaid, fullName);
+                                        uploadNewProfileImage(imageFileName);
                                     } else {
                                         // No image selected, update the profile without changing the image
-                                        updateUserProfile(name, email, channelname, channellink, instaid, fullName, "");
+                                        updateUserProfile(newName, name2, email, channelname, channellink, instaid, "");
                                     }
                                 }
                             }
@@ -285,18 +287,6 @@ public class ProfileActivity extends AppCompatActivity {
                                 Toast.makeText(ProfileActivity.this, "Profile update failed", Toast.LENGTH_SHORT).show();
                             }
                         });
-                    } else {
-                        // If the name is not changed, no need to check for availability, proceed with the update
-                        final String imageFileName = mAuth.getCurrentUser().getUid() + "_" + name + ".jpg";
-
-                        // Check if there's a change in the profile image URL
-                        if (imageUri != null) {
-                            // An image is selected, proceed with image upload
-                            uploadNewProfileImage(imageFileName, name, email, channelname, channellink, instaid, fullName);
-                        } else {
-                            // No image selected, update the profile without changing the image
-                            updateUserProfile(name, email, channelname, channellink, instaid, fullName, "");
-                        }
                     }
                 }
             }
@@ -306,7 +296,9 @@ public class ProfileActivity extends AppCompatActivity {
                 progressDialog.dismiss();
                 Toast.makeText(ProfileActivity.this, "Profile update failed", Toast.LENGTH_SHORT).show();
             }
-        });    }
+        });
+    }
+
 
     private boolean isValidUrl(String url) {
         // Define a regular expression for a valid URL
@@ -315,16 +307,15 @@ public class ProfileActivity extends AppCompatActivity {
         // Check if the input matches the regular expression
         return url.matches(urlRegex);
     }
-
-    private void updateUserProfile(final String name, String email, String channelname, String channellink, String instaid, String fullName, String imageUrl) {
+    private void updateUserProfile(final String name, String name2, String email, String channelname, String channellink, String instaid, String imageUrl) {
         // Create a user object
         Map<String, Object> user = new HashMap<>();
         user.put("name", name);
+        user.put("name2", name2);
         user.put("email", email);
         user.put("Youtube Channel name", channelname);
         user.put("Youtube Channel Link", channellink);
         user.put("Instagram id", instaid);
-        user.put("name2", fullName); // Set full name
 
         // Check if there's a change in the profile image URL
         if (!imageUrl.isEmpty()) {
@@ -376,8 +367,7 @@ public class ProfileActivity extends AppCompatActivity {
         String emailPattern = "[a-zA-Z0-9._-]+@[a-zA-Z]+\\.+[a-zA-Z]+";
         return email.matches(emailPattern);
     }
-
-    private void uploadNewProfileImage(final String imageFileName, final String name, final String email, final String channelname, final String channellink, final String instaid, final String fullName) {
+    private void uploadNewProfileImage(final String imageFileName) {
         // Upload the new profile image with the generated filename
         final StorageReference imageReference = storageReference.child(imageFileName);
         imageReference.putFile(imageUri)
@@ -392,7 +382,7 @@ public class ProfileActivity extends AppCompatActivity {
                                     if (downloadTask.isSuccessful()) {
                                         String imageUrl = downloadTask.getResult().toString();
                                         // Update user profile with the new image URL
-                                        updateUserProfile(name, email, channelname, channellink, instaid, fullName, imageUrl);
+                                        updateUserProfile(etName.getText().toString().trim(), etName2.getText().toString().trim(), etEmail.getText().toString().trim(), etChannelname.getText().toString().trim(), etChannellink.getText().toString().trim(), etinstaid.getText().toString().trim(), imageUrl);
                                     } else {
                                         progressDialog.dismiss();
                                         Toast.makeText(ProfileActivity.this, "Image upload failed", Toast.LENGTH_SHORT).show();
