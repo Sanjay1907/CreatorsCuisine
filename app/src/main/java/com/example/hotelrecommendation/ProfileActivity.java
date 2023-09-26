@@ -72,10 +72,16 @@ public class ProfileActivity extends AppCompatActivity {
         progressDialog = new ProgressDialog(this);
         progressDialog.setMessage("Updating Profile...");
 
+        progressDialog = new ProgressDialog(this);
+        progressDialog.setMessage("Fetching user data...");
+        progressDialog.setCancelable(false);
+
+        // Fetch user data from the database and autofill the fields if available
         // Fetch user data from the database and autofill the fields if available
         databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                progressDialog.dismiss(); // Dismiss the progress dialog when data is fetched
                 if (dataSnapshot.exists()) {
                     String nameFromDb = dataSnapshot.child("name").getValue(String.class);
                     String name2FromDb = dataSnapshot.child("name2").getValue(String.class);
@@ -102,9 +108,12 @@ public class ProfileActivity extends AppCompatActivity {
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
+                progressDialog.dismiss(); // Dismiss the progress dialog on database error
                 // Handle the error, if any.
             }
         });
+
+        progressDialog.show(); // Show the progress dialog before starting the data fetch
 
         // Disable editing of the contact number field and autofill it from the database
         etContactNumber.setEnabled(false);

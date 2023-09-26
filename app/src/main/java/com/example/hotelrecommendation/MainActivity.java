@@ -36,11 +36,16 @@ public class MainActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
     private DatabaseReference databaseReference;
     private TextView welcome, name;
+    private ProgressDialog progressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        progressDialog = new ProgressDialog(this);
+        progressDialog.setMessage("Fetching user data...");
+        progressDialog.setCancelable(false);
+        progressDialog.show();
 
         welcome=findViewById(R.id.welcome);
         name=findViewById(R.id.name);
@@ -56,14 +61,20 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if (!dataSnapshot.hasChild("name2")) {
+                    progressDialog.dismiss(); // Dismiss the progress dialog when data is fetched
                     Intent profileIntent = new Intent(MainActivity.this, ProfileActivity.class);
                     startActivity(profileIntent);
                     finish();
+                } else {
+                    String displayName = dataSnapshot.child("name2").getValue(String.class);
+                    name.setText(displayName);
+                    progressDialog.dismiss(); // Dismiss the progress dialog when data is fetched
                 }
             }
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
+                progressDialog.dismiss(); // Dismiss the progress dialog on database error
                 // Handle database read error, if any.
             }
         });

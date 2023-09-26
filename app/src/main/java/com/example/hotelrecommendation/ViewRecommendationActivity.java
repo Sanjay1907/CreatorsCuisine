@@ -1,5 +1,6 @@
 package com.example.hotelrecommendation;
 
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
@@ -29,11 +30,16 @@ public class ViewRecommendationActivity extends AppCompatActivity {
     private LinearLayout recommendationsContainer;
     private DatabaseReference databaseReference;
     private ArrayList<String> recommendationKeys;
+    private ProgressDialog progressDialog;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_view_recommendation);
+
+        progressDialog = new ProgressDialog(this);
+        progressDialog.setMessage("Fetching recommendation history...");
+        progressDialog.setCancelable(false);
 
         recommendationsContainer = findViewById(R.id.recommendationsContainer);
         recommendationKeys = new ArrayList<>();
@@ -41,6 +47,9 @@ public class ViewRecommendationActivity extends AppCompatActivity {
         databaseReference = FirebaseDatabase.getInstance().getReference("Creators")
                 .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
                 .child("recommendation");
+
+        // Show the progress dialog before starting to fetch data
+        progressDialog.show();
 
         // Read data from the database and populate the recommendationsContainer
         databaseReference.addValueEventListener(new ValueEventListener() {
@@ -115,6 +124,8 @@ public class ViewRecommendationActivity extends AppCompatActivity {
                                     @Override
                                     public void onCancelled(@NonNull DatabaseError databaseError) {
                                         // Handle the error
+                                        // Dismiss the progress dialog in case of an error as well
+                                        progressDialog.dismiss();
                                     }
                                 });
                             }
@@ -132,11 +143,16 @@ public class ViewRecommendationActivity extends AppCompatActivity {
                         recommendationsContainer.addView(recommendationView);
                     }
                 }
+
+                // Dismiss the progress dialog once all recommendations are loaded
+                progressDialog.dismiss();
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
                 // Handle the error
+                // Dismiss the progress dialog in case of an error
+                progressDialog.dismiss();
             }
         });
     }
