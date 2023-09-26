@@ -24,12 +24,16 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.libraries.places.api.Places;
 import com.google.android.libraries.places.api.model.Place;
-import com.google.android.libraries.places.api.model.TypeFilter;
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+import org.json.JSONException;
+import org.json.JSONObject;
 
+import java.io.IOException;
 import java.util.Arrays;
-import java.util.List;
 
 public class LocationSelectionActivity extends AppCompatActivity implements OnMapReadyCallback {
 
@@ -94,7 +98,9 @@ public class LocationSelectionActivity extends AppCompatActivity implements OnMa
 
                 // Update the flag and show the "Confirm Location" button
                 isLocationConfirmed = true;
-                btnConfirmLocation.setVisibility(View.VISIBLE);
+
+                // Fetch the place details including the display name using the TextSearch API
+                fetchPlaceDetails(place.getId());
 
                 // Set the map's camera position to the selected location
                 mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(selectedLatLng, 15));
@@ -104,6 +110,57 @@ public class LocationSelectionActivity extends AppCompatActivity implements OnMa
             public void onError(@NonNull Status status) {
                 // Handle any errors
                 Toast.makeText(LocationSelectionActivity.this, "Error: " + status.getStatusMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void fetchPlaceDetails(String placeId) {
+        OkHttpClient client = new OkHttpClient();
+        String apiKey = "AIzaSyDHoXOg6fB7_Aj9u9hCCkM76W0CzN5pZHE"; // Replace with your API key
+        String url = "https://maps.googleapis.com/maps/api/place/details/json" +
+                "?place_id=" + placeId +
+                "&fields=name" +
+                "&key=" + apiKey;
+
+        Request request = new Request.Builder()
+                .url(url)
+                .build();
+
+        client.newCall(request).enqueue(new okhttp3.Callback() {
+            @Override
+            public void onResponse(okhttp3.Call call, Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    String responseBody = response.body().string();
+                    try {
+                        JSONObject jsonObject = new JSONObject(responseBody);
+                        if (jsonObject.has("result")) {
+                            JSONObject result = jsonObject.getJSONObject("result");
+                            if (result.has("name")) {
+                                final String displayName = result.getString("name");
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        // Set the display name in the recommendation activity
+                                        Intent resultIntent = new Intent();
+                                        resultIntent.putExtra("latitude", selectedLatitude);
+                                        resultIntent.putExtra("longitude", selectedLongitude);
+                                        resultIntent.putExtra("displayName", displayName);
+                                        resultIntent.putExtra("placeId", placeId);
+                                        setResult(RESULT_OK, resultIntent);
+                                        finish();
+                                    }
+                                });
+                            }
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(okhttp3.Call call, IOException e) {
+                e.printStackTrace();
             }
         });
     }
@@ -153,8 +210,8 @@ public class LocationSelectionActivity extends AppCompatActivity implements OnMa
                 // Clear previous markers
                 mMap.clear();
 
-                // Add a new marker at the clicked location
-                mMap.addMarker(new MarkerOptions().position(latLng).title("Selected Location"));
+                // Add a marker at the clicked location
+                mMap.addMarker(new MarkerOptions().position(latLng));
 
                 // Set the selected location coordinates
                 selectedLatitude = latLng.latitude;

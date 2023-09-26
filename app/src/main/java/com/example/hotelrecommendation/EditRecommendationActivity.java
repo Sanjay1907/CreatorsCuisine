@@ -71,6 +71,7 @@ public class EditRecommendationActivity extends AppCompatActivity implements OnM
     private DatabaseReference recommendationRef;
 
     private Geocoder geocoder;
+    private String placeId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -322,6 +323,13 @@ public class EditRecommendationActivity extends AppCompatActivity implements OnM
                 double latitude = data.getDoubleExtra("latitude", 0.0);
                 double longitude = data.getDoubleExtra("longitude", 0.0);
 
+                String displayName = data.getStringExtra("displayName"); // Get the display name
+                placeId = data.getStringExtra("placeId");
+
+
+                // Set the display name in the hotelName EditText
+                etName.setText(displayName);
+
                 String address = getAddressFromCoordinates(latitude, longitude);
                 etAddress.setText(address);
 
@@ -382,6 +390,9 @@ public class EditRecommendationActivity extends AppCompatActivity implements OnM
         if (selectedLatitude != 0.0 && selectedLongitude != 0.0) {
             String updatedLocation = "Latitude: " + selectedLatitude + ", Longitude: " + selectedLongitude;
             recommendationRef.child("location").setValue(updatedLocation);
+            if (placeId != null) {
+                recommendationRef.child("placeId").setValue(placeId);
+            }
         }
 
         if (imageUri != null) {

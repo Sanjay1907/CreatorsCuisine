@@ -65,6 +65,8 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
     private double selectedLatitude;
     private double selectedLongitude;
     private String selectedLocationName;
+    private String placeId;
+
     private StringBuilder foodItemsBuilder; // To store food items.
 
     @Override
@@ -203,6 +205,11 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
                 if (data != null) {
                     selectedLatitude = data.getDoubleExtra("latitude", 0.0);
                     selectedLongitude = data.getDoubleExtra("longitude", 0.0);
+                    String displayName = data.getStringExtra("displayName"); // Get the display name
+                    placeId = data.getStringExtra("placeId");
+
+                    // Set the display name in the hotelName EditText
+                    etName.setText(displayName);
 
                     // Use reverse geocoding to get the location name
                     selectedLocationName = getLocationName(selectedLatitude, selectedLongitude);
@@ -320,7 +327,7 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
                                     if (downloadTask.isSuccessful()) {
                                         String imageUrl = downloadTask.getResult().toString();
 
-                                        Recommendation1 recommendation = new Recommendation1(name, link, address, contactNumber, foodItemsBuilder.toString(), location, rating, imageUrl, timings);
+                                        Recommendation1 recommendation = new Recommendation1(name, link, address, contactNumber, foodItemsBuilder.toString(), location, rating, imageUrl, timings, placeId);
 
                                         databaseReference.child(currentUserId).child("recommendation").push().setValue(recommendation)
                                                 .addOnCompleteListener(new OnCompleteListener<Void>() {
