@@ -42,6 +42,8 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 import com.google.firebase.database.DataSnapshot;
+import android.widget.RadioGroup;
+import android.widget.RadioButton;
 
 public class EditRecommendationActivity extends AppCompatActivity implements OnMapReadyCallback {
 
@@ -69,6 +71,9 @@ public class EditRecommendationActivity extends AppCompatActivity implements OnM
     private StringBuilder foodItemsBuilder; // To store food items.
     private String recommendationKey;
     private DatabaseReference recommendationRef;
+    private RadioGroup radioGroupFoodType;
+    private RadioButton radioButtonVeg, radioButtonNonVeg;
+    private String selectedFoodType = "";
 
     private Geocoder geocoder;
     private String placeId;
@@ -103,6 +108,9 @@ public class EditRecommendationActivity extends AppCompatActivity implements OnM
         mapView.getMapAsync(this);
 
         foodItemsBuilder = new StringBuilder();
+        radioGroupFoodType = findViewById(R.id.radioGroupFoodType);
+        radioButtonVeg = findViewById(R.id.radioButtonVeg);
+        radioButtonNonVeg = findViewById(R.id.radioButtonNonVeg);
 
         mAuth = FirebaseAuth.getInstance();
         databaseReference = FirebaseDatabase.getInstance().getReference("Creators");
@@ -120,6 +128,7 @@ public class EditRecommendationActivity extends AppCompatActivity implements OnM
             String imageUrl = extras.getString("imageUrl");
             String location = extras.getString("location");
             String timings = extras.getString("timings");
+            String foodType = extras.getString("foodType");
 
             etName.setText(name);
             etLink.setText(link);
@@ -127,6 +136,15 @@ public class EditRecommendationActivity extends AppCompatActivity implements OnM
             etContactNumber.setText(contactNumber);
             ettimings.setText(timings);
             ratingBar.setRating(rating);
+            if (foodType != null) {
+                RadioButton radioButton;
+                if (foodType.equalsIgnoreCase("Veg")) {
+                    radioButton = findViewById(R.id.radioButtonVeg);
+                } else {
+                    radioButton = findViewById(R.id.radioButtonNonVeg);
+                }
+                radioButton.setChecked(true);
+            }
 
             Glide.with(this).load(imageUrl).placeholder(R.drawable.default_hotel_img).into(profileImage);
 
@@ -165,6 +183,19 @@ public class EditRecommendationActivity extends AppCompatActivity implements OnM
             @Override
             public void onClick(View v) {
                 selectLocation();
+            }
+        });
+        radioButtonVeg.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                selectedFoodType = "Veg";
+            }
+        });
+
+        radioButtonNonVeg.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                selectedFoodType = "Non-Veg";
             }
         });
 
@@ -386,7 +417,9 @@ public class EditRecommendationActivity extends AppCompatActivity implements OnM
         recommendationRef.child("timings").setValue(updatedtimings);
         recommendationRef.child("food").setValue(updatedFood);
         recommendationRef.child("rating").setValue(updatedRating);
-
+        if (!selectedFoodType.isEmpty()) {
+            recommendationRef.child("foodType").setValue(selectedFoodType);
+        }
         if (selectedLatitude != 0.0 && selectedLongitude != 0.0) {
             String updatedLocation = "Latitude: " + selectedLatitude + ", Longitude: " + selectedLongitude;
             recommendationRef.child("location").setValue(updatedLocation);

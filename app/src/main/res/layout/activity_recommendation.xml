@@ -35,8 +35,8 @@
             android:textSize="18dp"
             android:layout_marginTop="10dp"
             android:layout_gravity="center"
-            android:textColor="@color/colorAccent"
-            android:backgroundTint="@color/colorWhite"
+            android:textColor="@color/white"
+            android:backgroundTint="@color/darkgreen"
             app:layout_constraintTop_toBottomOf="@id/profileImage"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
@@ -46,29 +46,64 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="5dp"
             android:layout_gravity="center"
-            android:backgroundTint="@color/colorPrimary"
+            android:backgroundTint="@color/darkgreen"
             android:text="Select Location"
             android:textSize="18dp"/>
 
         <EditText
             android:id="@+id/etName"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="60dp"
             android:layout_marginTop="30dp"
             android:layout_marginLeft="20dp"
             android:layout_marginRight="20dp"
             android:hint="Hotel Name"
+            android:paddingLeft="15dp"
+            android:background="@drawable/border_bkg"
+            android:drawablePadding="10dp"
             android:inputType="text"
             android:textSize="18dp"/>
-
-        <EditText
-            android:id="@+id/etlink"
+        <RadioGroup
+            android:id="@+id/radioGroupFoodType"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             android:layout_marginLeft="20dp"
             android:layout_marginRight="20dp"
+            android:orientation="horizontal">
+
+            <RadioButton
+                android:id="@+id/radioButtonVeg"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Veg"
+                android:textSize="18dp"
+                android:drawableLeft="@drawable/veg"
+                android:drawablePadding="8dp"
+                android:paddingStart="8dp"/>
+
+            <RadioButton
+                android:id="@+id/radioButtonNonVeg"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Non-Veg"
+                android:textSize="18dp"
+                android:drawableLeft="@drawable/nonveg"
+                android:paddingStart="8dp"/>
+        </RadioGroup>
+
+
+        <EditText
+            android:id="@+id/etlink"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
             android:hint="Link of video"
+            android:paddingLeft="15dp"
+            android:background="@drawable/border_bkg"
+            android:drawablePadding="10dp"
             android:textSize="18dp"
             android:inputType="textUri"/>
 
@@ -78,20 +113,26 @@
             android:layout_marginTop="10dp"
             android:layout_marginLeft="20dp"
             android:layout_marginRight="20dp"
-            android:layout_height="wrap_content"
+            android:layout_height="60dp"
             android:hint="Address"
+            android:paddingLeft="15dp"
+            android:background="@drawable/border_bkg"
+            android:drawablePadding="10dp"
             android:inputType="text"
             android:textSize="18dp"/>
 
         <EditText
             android:id="@+id/etContactNumber"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="60dp"
             android:layout_marginTop="10dp"
             android:layout_marginLeft="20dp"
             android:layout_marginRight="20dp"
             android:hint="Contact Number"
             android:textSize="18dp"
+            android:paddingLeft="15dp"
+            android:background="@drawable/border_bkg"
+            android:drawablePadding="10dp"
             android:inputType="number"
             android:maxLength="10"/>
 
@@ -103,17 +144,20 @@
             android:textSize="18dp"
             android:layout_marginLeft="20dp"
             android:layout_marginTop="10dp"
-            android:backgroundTint="@color/colorPrimary" />
+            android:backgroundTint="@color/darkgreen" />
 
         <EditText
             android:id="@+id/etTimings"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="60dp"
             android:layout_marginTop="10dp"
             android:layout_marginLeft="20dp"
             android:layout_marginRight="20dp"
             android:hint="Hotel Timings (e.g., 8am - 9pm)"
             android:textSize="18dp"
+            android:paddingLeft="15dp"
+            android:background="@drawable/border_bkg"
+            android:drawablePadding="10dp"
             android:inputType="text"/>
 
         <LinearLayout
@@ -124,22 +168,26 @@
             <EditText
                 android:id="@+id/etfood"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="60dp"
                 android:layout_weight="1"
                 android:layout_marginTop="10dp"
                 android:layout_marginLeft="20dp"
                 android:layout_marginRight="20dp"
+                android:paddingLeft="15dp"
+                android:background="@drawable/border_bkg"
+                android:drawablePadding="10dp"
                 android:hint="Must Try Food Items"
                 android:textSize="18dp"/>
 
             <Button
                 android:id="@+id/btnAddFoodItem"
-                android:layout_width="70dp"
-                android:layout_height="wrap_content"
+                android:layout_width="76dp"
+                android:layout_height="45dp"
                 android:layout_marginTop="10dp"
                 android:layout_marginRight="20dp"
-                android:backgroundTint="@color/colorPrimary"
-                android:drawableLeft="@drawable/baseline_add_24" />
+                android:backgroundTint="@color/darkgreen"
+                android:drawableLeft="@drawable/baseline_add_24"
+                android:drawableTint="@android:color/white" />
         </LinearLayout>
 
         <TextView
@@ -180,7 +228,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             android:text="Add Recommendation"
-            android:backgroundTint="@color/colorPrimary"
+            android:backgroundTint="@color/darkgreen"
             android:layout_gravity="center"
             android:textSize="20dp"/>
 

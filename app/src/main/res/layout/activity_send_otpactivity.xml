@@ -10,22 +10,15 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="@drawable/login_bkg"
         android:gravity="center_horizontal"
-        android:layout_marginTop="80dp"
+        android:layout_marginTop="0dp"
         android:orientation="vertical">
 
-        <ImageView
-            android:layout_width="180dp"
-            android:layout_height="180dp"
-            android:layout_marginTop="30dp"
-            android:contentDescription="@string/app_name"
-            android:src="@drawable/sendotp" >
-
-        </ImageView>
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="30dp"
+            android:layout_marginTop="390dp"
             android:text="@string/login"
             android:textColor="@color/colorTextPrimary"
             android:textSize="20sp"
@@ -52,7 +45,7 @@
             android:text="@string/enter_your_mobile_number"
             android:textColor="@color/colorTextSecondary"
             android:textSize="14sp"/>
-        
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -60,8 +53,8 @@
             android:layout_marginEnd="60dp"
             android:gravity="center"
             android:orientation="horizontal">
-            
-            
+
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="40dp"
@@ -94,26 +87,26 @@
             android:background="@color/colorDivider"/>
 
         <FrameLayout
-            android:layout_width="match_parent"
+            android:layout_width="387dp"
             android:layout_height="wrap_content">
 
             <Button
+                android:id="@+id/buttonGetOTP"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:id="@+id/buttonGetOTP"
                 android:layout_margin="30dp"
-                android:backgroundTint="@color/colorPrimary"
+                android:backgroundTint="@color/darkgreen"
                 android:text="@string/get_otp"
-                android:textColor="@color/colorWhite"
+                android:textColor="@color/white"
                 android:textSize="16sp"
-                android:textStyle="bold"/>
+                android:textStyle="bold" />
 
             <ProgressBar
-                android:layout_width="40dp"
-                android:layout_height="40dp"
                 android:id="@+id/progressbar"
+                android:layout_width="51dp"
+                android:layout_height="25dp"
                 android:layout_gravity="center"
-                android:visibility="gone"/>
+                android:visibility="gone" />
 
         </FrameLayout>
 

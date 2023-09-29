@@ -35,7 +35,6 @@ public class MainActivity extends AppCompatActivity {
     private CardView btnProfile, btnAddRecommendation, btnLogout, btnViewRecommendation;
     private FirebaseAuth mAuth;
     private DatabaseReference databaseReference;
-    private TextView welcome, name;
     private ProgressDialog progressDialog;
 
     @Override
@@ -47,8 +46,6 @@ public class MainActivity extends AppCompatActivity {
         progressDialog.setCancelable(false);
         progressDialog.show();
 
-        welcome=findViewById(R.id.welcome);
-        name=findViewById(R.id.name);
         mAuth = FirebaseAuth.getInstance();
         databaseReference = FirebaseDatabase.getInstance().getReference("Creators")
                 .child(mAuth.getCurrentUser().getUid());
@@ -66,8 +63,6 @@ public class MainActivity extends AppCompatActivity {
                     startActivity(profileIntent);
                     finish();
                 } else {
-                    String displayName = dataSnapshot.child("name2").getValue(String.class);
-                    name.setText(displayName);
                     progressDialog.dismiss(); // Dismiss the progress dialog when data is fetched
                 }
             }
@@ -92,7 +87,7 @@ public class MainActivity extends AppCompatActivity {
                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                     if (dataSnapshot.exists()) {
                         String displayName = dataSnapshot.child("name2").getValue(String.class);
-                        name.setText(displayName);
+                        //name.setText(displayName);
                     } else {
                         Toast.makeText(MainActivity.this, "Creators data does not exist in the database", Toast.LENGTH_SHORT).show();
                     }

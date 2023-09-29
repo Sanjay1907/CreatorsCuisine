@@ -4,6 +4,7 @@
     android:id="@+id/dialogCustomDelete"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:background="@drawable/border_butn"
     android:layout_margin="20dp">
 
     <TextView
@@ -13,7 +14,6 @@
         android:text="Delete Recommendation"
         android:textSize="17sp"
         android:textColor="@android:color/black"
-        android:background="@drawable/rounded_top_yellow_bg"
         android:padding="10dp"
         android:drawableLeft="@drawable/baseline_delete_24"
         android:drawablePadding="8dp"
@@ -42,7 +42,7 @@
         android:text="Cancel"
         android:textSize="14sp"
         android:textColor="@android:color/white"
-        android:backgroundTint="@color/colorPrimary"
+        android:backgroundTint="@color/darkgreen"
         app:cornerRadius="20dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toStartOf="@id/btnConfirmDelete"

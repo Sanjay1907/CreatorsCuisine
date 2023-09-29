@@ -95,6 +95,7 @@ public class ViewRecommendationActivity extends AppCompatActivity {
                                             String timings = dataSnapshot.child("timings").getValue(String.class);
                                             float rating = dataSnapshot.child("rating").getValue(Float.class);
                                             String imageUrl = dataSnapshot.child("imageUrl").getValue(String.class); // Get the image URL
+                                            String foodType = dataSnapshot.child("foodType").getValue(String.class);
 
                                             // Start the EditRecommendationActivity and pass the data
                                             Intent editIntent = new Intent(ViewRecommendationActivity.this, EditRecommendationActivity.class);
@@ -108,6 +109,7 @@ public class ViewRecommendationActivity extends AppCompatActivity {
                                             editIntent.putExtra("timings", timings);
                                             editIntent.putExtra("rating", rating);
                                             editIntent.putExtra("imageUrl", imageUrl); // Pass the image URL
+                                            editIntent.putExtra("foodType", foodType);
 
                                             // Pass the MapView data here
                                             // Extract latitude and longitude from the location string

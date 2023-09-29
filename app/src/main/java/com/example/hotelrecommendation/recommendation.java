@@ -11,6 +11,8 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.RadioGroup;
+import android.widget.RadioButton;
 import android.widget.RatingBar;
 import android.widget.TextView;
 import android.widget.TimePicker;
@@ -66,6 +68,9 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
     private double selectedLongitude;
     private String selectedLocationName;
     private String placeId;
+    private RadioGroup radioGroupFoodType;
+    private RadioButton radioButtonVeg, radioButtonNonVeg;
+    private String selectedFoodType = ""; // To store the selected food type
 
     private StringBuilder foodItemsBuilder; // To store food items.
 
@@ -98,6 +103,24 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
         databaseReference = FirebaseDatabase.getInstance().getReference("Creators");
         storageReference = FirebaseStorage.getInstance().getReference("hotel_images");
 
+        radioGroupFoodType = findViewById(R.id.radioGroupFoodType);
+        radioButtonVeg = findViewById(R.id.radioButtonVeg);
+        radioButtonNonVeg = findViewById(R.id.radioButtonNonVeg);
+
+        // Set an OnCheckedChangeListener for the radio group
+        radioButtonVeg.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                selectedFoodType = "Veg";
+            }
+        });
+
+        radioButtonNonVeg.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                selectedFoodType = "Non-Veg";
+            }
+        });
         btnChooseImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -261,7 +284,6 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
         }
     }
 
-
     private void addRecommendation() {
         final String name = etName.getText().toString().trim();
         final String link = etLink.getText().toString().trim();
@@ -277,6 +299,10 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
         }
         if(name.isEmpty()){
             Toast.makeText(this,"Hotel Name is Required", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (selectedFoodType.isEmpty()) {
+            Toast.makeText(this, "Please choose the hotel category as Veg or Non-Veg", Toast.LENGTH_SHORT).show();
             return;
         }
         if(address.isEmpty()){
@@ -327,7 +353,10 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
                                     if (downloadTask.isSuccessful()) {
                                         String imageUrl = downloadTask.getResult().toString();
 
-                                        Recommendation1 recommendation = new Recommendation1(name, link, address, contactNumber, foodItemsBuilder.toString(), location, rating, imageUrl, timings, placeId);
+                                        Recommendation1 recommendation = new Recommendation1(name, link, address, contactNumber, foodItemsBuilder.toString(), location, rating, imageUrl, timings, placeId, selectedFoodType);
+
+                                        // Add the selected food type to the recommendation object
+                                        recommendation.setFoodType(selectedFoodType);
 
                                         databaseReference.child(currentUserId).child("recommendation").push().setValue(recommendation)
                                                 .addOnCompleteListener(new OnCompleteListener<Void>() {

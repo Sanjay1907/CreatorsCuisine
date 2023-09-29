@@ -17,12 +17,13 @@ public class Recommendation1 {
     private String location;
     private String timings;
     private String placeId;
+    private String foodType;
 
     public Recommendation1() {
         // Default constructor required for calls to DataSnapshot.getValue(Recommendation1.class)
     }
 
-    public Recommendation1(String name, String link, String address, String contactNumber, String food, String location, float rating, String imageUrl, String timings, String placeId) {
+    public Recommendation1(String name, String link, String address, String contactNumber, String food, String location, float rating, String imageUrl, String timings, String placeId, String foodType) {
         this.name = name;
         this.link = link;
         this.address = address;
@@ -33,6 +34,7 @@ public class Recommendation1 {
         this.imageUrl = imageUrl;
         this.timings = timings;
         this.placeId = placeId;
+        this.foodType = foodType;
     }
 
 
@@ -87,5 +89,12 @@ public class Recommendation1 {
 
     public void setPlaceId(String placeId) {
         this.placeId = placeId;
+    }
+    public String getFoodType() {
+        return foodType;
+    }
+
+    public void setFoodType(String foodType) {
+        this.foodType = foodType;
     }
 }

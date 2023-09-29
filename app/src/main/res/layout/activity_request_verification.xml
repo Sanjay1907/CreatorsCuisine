@@ -5,25 +5,27 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="16dp"
+    android:background="@drawable/ver_bkg"
     tools:context=".RequestVerificationActivity">
 
     <TextView
         android:id="@+id/tvDocumentTypeLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
+        android:layout_marginTop="150dp"
+        android:layout_marginStart="20dp"
         android:text="Choose Document Type"
-        android:textSize="16sp"
-        android:textStyle="bold"
-        android:layout_marginTop="16dp" />
+        android:textColor="@color/darkgreen"
+        android:textSize="22sp"
+        android:textStyle="bold" />
 
     <Spinner
         android:id="@+id/spinnerDocumentType"
-        android:layout_width="match_parent"
+        android:layout_width="300dp"
         android:layout_height="wrap_content"
         android:layout_below="@+id/tvDocumentTypeLabel"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="35dp"
         android:layout_marginBottom="8dp"
         android:background="@android:drawable/btn_dropdown"
         android:prompt="@array/document_types"
@@ -31,23 +33,26 @@
 
 
     <TextView
-        android:layout_width="match_parent"
+        android:id="@+id/sizeview"
+        android:layout_width="347dp"
         android:layout_height="wrap_content"
         android:layout_below="@id/spinnerDocumentType"
-        android:id="@+id/sizeview"
+        android:layout_marginTop="16dp"
+        android:layout_marginStart="20dp"
         android:text="**Maximum Size of pdf should be 2MB**"
-        android:textSize="12dp"
-        android:textStyle="italic"
-        android:textColor="@color/quantum_grey"/>
+        android:textColor="@color/quantum_grey"
+        android:textSize="14dp"
+        android:textStyle="italic" />
+
     <Button
         android:id="@+id/btnChooseDocument"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/sizeview"
         android:layout_centerHorizontal="true"
         android:text="Upload Document (PDF)"
-        android:backgroundTint="@color/colorPrimary"
-        android:layout_marginTop="8dp" />
+        android:backgroundTint="@color/darkgreen"
+        android:layout_marginTop="18dp" />
 
     <TextView
         android:id="@+id/tvSelectedDocument"
@@ -55,19 +60,19 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/btnChooseDocument"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="18dp"
         android:text=""
         android:textSize="16sp"
         android:textStyle="italic" />
 
     <Button
         android:id="@+id/btnRequestVerification"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/tvSelectedDocument"
         android:layout_centerHorizontal="true"
         android:text="Submit Request"
-        android:backgroundTint="@color/colorPrimary"
+        android:backgroundTint="@color/darkgreen"
         android:layout_marginTop="16dp" />
 
 </RelativeLayout>
