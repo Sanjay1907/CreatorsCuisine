@@ -41,6 +41,8 @@ public class LocationSelectionActivity extends AppCompatActivity implements OnMa
     private Button btnConfirmLocation;
     private double selectedLatitude;
     private double selectedLongitude;
+    private String selectedCityName;
+
     private boolean isLocationConfirmed = false;
     private SupportMapFragment mapFragment;
 
@@ -119,7 +121,7 @@ public class LocationSelectionActivity extends AppCompatActivity implements OnMa
         String apiKey = "AIzaSyDHoXOg6fB7_Aj9u9hCCkM76W0CzN5pZHE"; // Replace with your API key
         String url = "https://maps.googleapis.com/maps/api/place/details/json" +
                 "?place_id=" + placeId +
-                "&fields=name" +
+                "&fields=name,formatted_address" +  // Include formatted_address to get city name
                 "&key=" + apiKey;
 
         Request request = new Request.Builder()
@@ -135,17 +137,26 @@ public class LocationSelectionActivity extends AppCompatActivity implements OnMa
                         JSONObject jsonObject = new JSONObject(responseBody);
                         if (jsonObject.has("result")) {
                             JSONObject result = jsonObject.getJSONObject("result");
-                            if (result.has("name")) {
+                            if (result.has("name") && result.has("formatted_address")) {
                                 final String displayName = result.getString("name");
+                                final String formattedAddress = result.getString("formatted_address");
+
+                                // Extract the city name from the formatted address
+                                String[] addressParts = formattedAddress.split(",");
+                                if (addressParts.length > 0) {
+                                    selectedCityName = addressParts[addressParts.length - 3].trim();
+                                }
+
                                 runOnUiThread(new Runnable() {
                                     @Override
                                     public void run() {
-                                        // Set the display name in the recommendation activity
+                                        // Set the display name and city name in the recommendation activity
                                         Intent resultIntent = new Intent();
                                         resultIntent.putExtra("latitude", selectedLatitude);
                                         resultIntent.putExtra("longitude", selectedLongitude);
                                         resultIntent.putExtra("displayName", displayName);
                                         resultIntent.putExtra("placeId", placeId);
+                                        resultIntent.putExtra("cityName", selectedCityName); // Pass the city name
                                         setResult(RESULT_OK, resultIntent);
                                         finish();
                                     }

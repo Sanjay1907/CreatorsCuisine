@@ -18,12 +18,14 @@ public class Recommendation1 {
     private String timings;
     private String placeId;
     private String foodType;
+    private String city;
+    private String specialType;
 
     public Recommendation1() {
         // Default constructor required for calls to DataSnapshot.getValue(Recommendation1.class)
     }
 
-    public Recommendation1(String name, String link, String address, String contactNumber, String food, String location, float rating, String imageUrl, String timings, String placeId, String foodType) {
+    public Recommendation1(String name, String link, String address, String contactNumber, String food, String location, float rating, String imageUrl, String timings, String placeId, String foodType, String city, String specialType) {
         this.name = name;
         this.link = link;
         this.address = address;
@@ -35,6 +37,8 @@ public class Recommendation1 {
         this.timings = timings;
         this.placeId = placeId;
         this.foodType = foodType;
+        this.city = city;
+        this.specialType = specialType;
     }
 
 
@@ -97,4 +101,16 @@ public class Recommendation1 {
     public void setFoodType(String foodType) {
         this.foodType = foodType;
     }
+    @PropertyName("city")
+    public String getcity() {
+        return city;
+    }
+    public String getSpecialType() {
+        return specialType;
+    }
+
+    public void setSpecialType(String specialType) {
+        this.specialType = specialType;
+    }
+
 }

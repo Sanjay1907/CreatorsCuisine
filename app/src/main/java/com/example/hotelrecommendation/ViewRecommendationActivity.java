@@ -24,6 +24,8 @@ import android.app.AlertDialog;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import com.google.firebase.database.Query;
+import com.google.firebase.database.ChildEventListener;
 
 public class ViewRecommendationActivity extends AppCompatActivity {
 
@@ -47,12 +49,13 @@ public class ViewRecommendationActivity extends AppCompatActivity {
         databaseReference = FirebaseDatabase.getInstance().getReference("Creators")
                 .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
                 .child("recommendation");
+        Query query = databaseReference.orderByChild("name");
 
         // Show the progress dialog before starting to fetch data
         progressDialog.show();
 
         // Read data from the database and populate the recommendationsContainer
-        databaseReference.addValueEventListener(new ValueEventListener() {
+        query.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 recommendationsContainer.removeAllViews();
@@ -96,6 +99,8 @@ public class ViewRecommendationActivity extends AppCompatActivity {
                                             float rating = dataSnapshot.child("rating").getValue(Float.class);
                                             String imageUrl = dataSnapshot.child("imageUrl").getValue(String.class); // Get the image URL
                                             String foodType = dataSnapshot.child("foodType").getValue(String.class);
+                                            String city = dataSnapshot.child("city").getValue(String.class);
+                                            String specialType = dataSnapshot.child("specialType").getValue(String.class);
 
                                             // Start the EditRecommendationActivity and pass the data
                                             Intent editIntent = new Intent(ViewRecommendationActivity.this, EditRecommendationActivity.class);
@@ -110,6 +115,8 @@ public class ViewRecommendationActivity extends AppCompatActivity {
                                             editIntent.putExtra("rating", rating);
                                             editIntent.putExtra("imageUrl", imageUrl); // Pass the image URL
                                             editIntent.putExtra("foodType", foodType);
+                                            editIntent.putExtra("city", city);
+                                            editIntent.putExtra("specialType", specialType);
 
                                             // Pass the MapView data here
                                             // Extract latitude and longitude from the location string

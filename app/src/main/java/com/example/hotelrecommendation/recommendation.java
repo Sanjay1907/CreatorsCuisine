@@ -47,7 +47,7 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
     private static final int PICK_LOCATION_REQUEST = 2;
     private ImageView profileImage;
     private Button btnChooseImage, btnAddLocation, btnAddRecommendation, btnAddFoodItem;
-    private EditText etName, etLink, etAddress, etContactNumber, etFood, etTimings;
+    private EditText etName, etLink, etAddress, etContactNumber, etFood, etTimings, etcity;
     private Button btnChooseTimings;
 
     private int startHour, startMinute, endHour, endMinute;
@@ -68,10 +68,10 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
     private double selectedLongitude;
     private String selectedLocationName;
     private String placeId;
-    private RadioGroup radioGroupFoodType;
-    private RadioButton radioButtonVeg, radioButtonNonVeg;
+    private RadioGroup radioGroupFoodType,radiospecialfood;
+    private RadioButton radioButtonVeg, radioButtonNonVeg,Veg,NonVeg,both;
     private String selectedFoodType = ""; // To store the selected food type
-
+    private String selectedSpecialType = "";
     private StringBuilder foodItemsBuilder; // To store food items.
 
     @Override
@@ -86,6 +86,7 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
         etAddress = findViewById(R.id.etaddress);
         etContactNumber = findViewById(R.id.etContactNumber);
         etFood = findViewById(R.id.etfood);
+        etcity = findViewById(R.id.etcity);
         ratingBar = findViewById(R.id.ratingBar);
         btnAddLocation = findViewById(R.id.btnlocation);
         btnAddRecommendation = findViewById(R.id.btnadd);
@@ -107,6 +108,11 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
         radioButtonVeg = findViewById(R.id.radioButtonVeg);
         radioButtonNonVeg = findViewById(R.id.radioButtonNonVeg);
 
+        radiospecialfood = findViewById(R.id.radiospecialfood);
+        Veg = findViewById(R.id.Veg);
+        NonVeg = findViewById(R.id.NonVeg);
+        both = findViewById(R.id.both);
+
         // Set an OnCheckedChangeListener for the radio group
         radioButtonVeg.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -119,6 +125,24 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
             @Override
             public void onClick(View view) {
                 selectedFoodType = "Non-Veg";
+            }
+        });
+        Veg.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                selectedSpecialType = "Veg";
+            }
+        });
+        NonVeg.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                selectedSpecialType = "Non-Veg";
+            }
+        });
+        both.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                selectedSpecialType = "Both";
             }
         });
         btnChooseImage.setOnClickListener(new View.OnClickListener() {
@@ -230,6 +254,8 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
                     selectedLongitude = data.getDoubleExtra("longitude", 0.0);
                     String displayName = data.getStringExtra("displayName"); // Get the display name
                     placeId = data.getStringExtra("placeId");
+                    String cityname = data.getStringExtra("cityName");
+                    etcity.setText(cityname);
 
                     // Set the display name in the hotelName EditText
                     etName.setText(displayName);
@@ -288,6 +314,7 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
         final String name = etName.getText().toString().trim();
         final String link = etLink.getText().toString().trim();
         final String address = etAddress.getText().toString().trim();
+        final String city = etcity.getText().toString().trim();
         final String contactNumber = etContactNumber.getText().toString().trim();
         final String timings = etTimings.getText().toString().trim();
         final String location = txtLocation.getText().toString().trim();
@@ -305,8 +332,16 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
             Toast.makeText(this, "Please choose the hotel category as Veg or Non-Veg", Toast.LENGTH_SHORT).show();
             return;
         }
+        if (selectedSpecialType.isEmpty()) {
+            Toast.makeText(this, "Please choose the hotel special food type as Veg or Non-Veg or Both", Toast.LENGTH_SHORT).show();
+            return;
+        }
         if(address.isEmpty()){
             Toast.makeText(this,"Hotel Address is Required", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if(city.isEmpty()){
+            Toast.makeText(this,"City Name is Required", Toast.LENGTH_SHORT).show();
             return;
         }
         if(contactNumber.isEmpty()){
@@ -353,10 +388,11 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
                                     if (downloadTask.isSuccessful()) {
                                         String imageUrl = downloadTask.getResult().toString();
 
-                                        Recommendation1 recommendation = new Recommendation1(name, link, address, contactNumber, foodItemsBuilder.toString(), location, rating, imageUrl, timings, placeId, selectedFoodType);
+                                        Recommendation1 recommendation = new Recommendation1(name, link, address, contactNumber, foodItemsBuilder.toString(), location, rating, imageUrl, timings, placeId, selectedFoodType, city, selectedSpecialType);
 
                                         // Add the selected food type to the recommendation object
                                         recommendation.setFoodType(selectedFoodType);
+                                        recommendation.setSpecialType(selectedSpecialType);
 
                                         databaseReference.child(currentUserId).child("recommendation").push().setValue(recommendation)
                                                 .addOnCompleteListener(new OnCompleteListener<Void>() {
@@ -421,11 +457,14 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
         etName.setText("");
         etLink.setText("");
         etAddress.setText("");
+        etcity.setText("");
         etContactNumber.setText("");
         etTimings.setText("");
         etFood.setText("");
         txtLocation.setText("");
         ratingBar.setRating(0);
+        radioGroupFoodType.clearCheck();
+        radiospecialfood.clearCheck();
         profileImage.setImageResource(R.drawable.default_profile_image);
         googleMap.clear();
         tvAddedFoodItems.setText(""); // Clear the added food items TextView

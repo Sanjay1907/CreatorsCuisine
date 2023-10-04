@@ -76,7 +76,7 @@
                 android:id="@+id/radioButtonVeg"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Veg"
+                android:text="Pure Vegeterian"
                 android:textSize="18dp"
                 android:drawableLeft="@drawable/veg"
                 android:drawablePadding="8dp"
@@ -86,9 +86,10 @@
                 android:id="@+id/radioButtonNonVeg"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Non-Veg"
+                android:text="Genral"
                 android:textSize="18dp"
                 android:drawableLeft="@drawable/nonveg"
+                android:drawablePadding="8dp"
                 android:paddingStart="8dp"/>
         </RadioGroup>
 
@@ -120,6 +121,19 @@
             android:drawablePadding="10dp"
             android:inputType="text"
             android:textSize="18dp"/>
+        <EditText
+            android:id="@+id/etcity"
+            android:layout_width="match_parent"
+            android:layout_marginTop="10dp"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:layout_height="60dp"
+            android:hint="City"
+            android:paddingLeft="15dp"
+            android:background="@drawable/border_bkg"
+            android:drawablePadding="10dp"
+            android:inputType="text"
+            android:textSize="18dp"/>
 
         <EditText
             android:id="@+id/etContactNumber"
@@ -135,6 +149,54 @@
             android:drawablePadding="10dp"
             android:inputType="number"
             android:maxLength="10"/>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="30dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:text="Hotel is Special for :"
+            android:textSize="18dp"
+            android:textStyle="normal"
+            android:textColor="@android:color/black"/>
+        <RadioGroup
+            android:id="@+id/radiospecialfood"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:orientation="horizontal">
+
+            <RadioButton
+                android:id="@+id/Veg"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Veg"
+                android:textSize="18dp"
+                android:drawableLeft="@drawable/veg"
+                android:drawablePadding="5dp"
+                android:paddingStart="2dp"/>
+
+            <RadioButton
+                android:id="@+id/NonVeg"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Non-Veg"
+                android:textSize="18dp"
+                android:drawableLeft="@drawable/nonveg"
+                android:drawablePadding="5dp"
+                android:paddingStart="2dp"/>
+            <RadioButton
+                android:id="@+id/both"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Both"
+                android:textSize="18dp"
+                android:drawableLeft="@drawable/general"
+                android:drawablePadding="5dp"
+                android:paddingStart="2dp"/>
+        </RadioGroup>
 
         <Button
             android:id="@+id/btnChooseTimings"

@@ -51,7 +51,7 @@ public class EditRecommendationActivity extends AppCompatActivity implements OnM
     private static final int LOCATION_SELECTION_REQUEST = 2;
     private ImageView profileImage;
     private Button btnChooseImage, btnAddLocation, btnUpdateRecommendation, btnAddFoodItem;
-    private EditText etName, etLink, etAddress, etContactNumber, etFood, ettimings;
+    private EditText etName, etLink, etAddress, etContactNumber, etFood, ettimings, etcity;
     private RatingBar ratingBar;
     private Button btnChooseTimings;
     private int startHour, startMinute, endHour, endMinute;
@@ -71,9 +71,10 @@ public class EditRecommendationActivity extends AppCompatActivity implements OnM
     private StringBuilder foodItemsBuilder; // To store food items.
     private String recommendationKey;
     private DatabaseReference recommendationRef;
-    private RadioGroup radioGroupFoodType;
-    private RadioButton radioButtonVeg, radioButtonNonVeg;
+    private RadioGroup radioGroupFoodType,radioSpecialType;
+    private RadioButton radioButtonVeg, radioButtonNonVeg, Veg, NonVeg, both;
     private String selectedFoodType = "";
+    private String selectedSpecialType = "";
 
     private Geocoder geocoder;
     private String placeId;
@@ -89,6 +90,7 @@ public class EditRecommendationActivity extends AppCompatActivity implements OnM
         etContactNumber = findViewById(R.id.etContactNumber);
         etFood = findViewById(R.id.etfood);
         ettimings = findViewById(R.id.etTimings);
+        etcity = findViewById(R.id.etcity);
         ratingBar = findViewById(R.id.ratingBar);
         btnChooseImage = findViewById(R.id.btnChooseImage);
         btnAddLocation = findViewById(R.id.btnlocation);
@@ -111,6 +113,11 @@ public class EditRecommendationActivity extends AppCompatActivity implements OnM
         radioGroupFoodType = findViewById(R.id.radioGroupFoodType);
         radioButtonVeg = findViewById(R.id.radioButtonVeg);
         radioButtonNonVeg = findViewById(R.id.radioButtonNonVeg);
+        radioSpecialType = findViewById(R.id.radiospecialfood);
+        Veg = findViewById(R.id.Veg);
+        NonVeg = findViewById(R.id.NonVeg);
+        both = findViewById(R.id.both);
+
 
         mAuth = FirebaseAuth.getInstance();
         databaseReference = FirebaseDatabase.getInstance().getReference("Creators");
@@ -129,10 +136,13 @@ public class EditRecommendationActivity extends AppCompatActivity implements OnM
             String location = extras.getString("location");
             String timings = extras.getString("timings");
             String foodType = extras.getString("foodType");
+            String city = extras.getString("city");
+            String specialType = extras.getString("specialType");
 
             etName.setText(name);
             etLink.setText(link);
             etAddress.setText(address);
+            etcity.setText(city);
             etContactNumber.setText(contactNumber);
             ettimings.setText(timings);
             ratingBar.setRating(rating);
@@ -144,6 +154,15 @@ public class EditRecommendationActivity extends AppCompatActivity implements OnM
                     radioButton = findViewById(R.id.radioButtonNonVeg);
                 }
                 radioButton.setChecked(true);
+            }
+            if (specialType != null) {
+                if (specialType.equalsIgnoreCase("Veg")) {
+                    Veg.setChecked(true);
+                } else if (specialType.equalsIgnoreCase("Non-Veg")) {
+                    NonVeg.setChecked(true);
+                } else if (specialType.equalsIgnoreCase("Both")) {
+                    both.setChecked(true);
+                }
             }
 
             Glide.with(this).load(imageUrl).placeholder(R.drawable.default_hotel_img).into(profileImage);
@@ -196,6 +215,24 @@ public class EditRecommendationActivity extends AppCompatActivity implements OnM
             @Override
             public void onClick(View view) {
                 selectedFoodType = "Non-Veg";
+            }
+        });
+        Veg.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                selectedSpecialType = "Veg";
+            }
+        });
+        NonVeg.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                selectedSpecialType = "Non-Veg";
+            }
+        });
+        both.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                selectedSpecialType = "Both";
             }
         });
 
@@ -356,6 +393,8 @@ public class EditRecommendationActivity extends AppCompatActivity implements OnM
 
                 String displayName = data.getStringExtra("displayName"); // Get the display name
                 placeId = data.getStringExtra("placeId");
+                String cityname = data.getStringExtra("cityName");
+                etcity.setText(cityname);
 
 
                 // Set the display name in the hotelName EditText
@@ -400,6 +439,7 @@ public class EditRecommendationActivity extends AppCompatActivity implements OnM
         String updatedName = etName.getText().toString().trim();
         String updatedLink = etLink.getText().toString().trim();
         String updatedAddress = etAddress.getText().toString().trim();
+        String updatedCity = etcity.getText().toString().trim();
         String updatedContactNumber = etContactNumber.getText().toString().trim();
         String updatedtimings = ettimings.getText().toString().trim();
         String updatedFood = tvAddedFoodItems.getText().toString().trim().replace("Must Try Food Items: ", "");
@@ -413,12 +453,16 @@ public class EditRecommendationActivity extends AppCompatActivity implements OnM
         recommendationRef.child("name").setValue(updatedName);
         recommendationRef.child("link").setValue(updatedLink);
         recommendationRef.child("address").setValue(updatedAddress);
+        recommendationRef.child("city").setValue(updatedCity);
         recommendationRef.child("contactNumber").setValue(updatedContactNumber);
         recommendationRef.child("timings").setValue(updatedtimings);
         recommendationRef.child("food").setValue(updatedFood);
         recommendationRef.child("rating").setValue(updatedRating);
         if (!selectedFoodType.isEmpty()) {
             recommendationRef.child("foodType").setValue(selectedFoodType);
+        }
+        if (!selectedSpecialType.isEmpty()) {
+            recommendationRef.child("specialType").setValue(selectedSpecialType);
         }
         if (selectedLatitude != 0.0 && selectedLongitude != 0.0) {
             String updatedLocation = "Latitude: " + selectedLatitude + ", Longitude: " + selectedLongitude;
