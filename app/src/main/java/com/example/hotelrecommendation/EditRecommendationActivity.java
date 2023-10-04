@@ -2,6 +2,7 @@ package com.example.hotelrecommendation;
 
 import android.app.ProgressDialog;
 import android.app.TimePickerDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.location.Address;
 import android.location.Geocoder;
@@ -17,6 +18,7 @@ import android.widget.TimePicker;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
@@ -50,7 +52,7 @@ public class EditRecommendationActivity extends AppCompatActivity implements OnM
     private static final int PICK_IMAGE_REQUEST = 1;
     private static final int LOCATION_SELECTION_REQUEST = 2;
     private ImageView profileImage;
-    private Button btnChooseImage, btnAddLocation, btnUpdateRecommendation, btnAddFoodItem;
+    private Button btnChooseImage, btnAddLocation, btnUpdateRecommendation, btnAddFoodItem, deletebtn;
     private EditText etName, etLink, etAddress, etContactNumber, etFood, ettimings, etcity;
     private RatingBar ratingBar;
     private Button btnChooseTimings;
@@ -100,6 +102,7 @@ public class EditRecommendationActivity extends AppCompatActivity implements OnM
         mapView = findViewById(R.id.mapView);
         tvAddedFoodItems = findViewById(R.id.tvAddedFoodItems);
         btnAddFoodItem = findViewById(R.id.btnAddFoodItem);
+        deletebtn = findViewById(R.id.btnDeleteRecommendation);
         geocoder = new Geocoder(this, Locale.getDefault());
         btnChooseTimings = findViewById(R.id.btnChooseTimings); // Initialize the btnChooseTimings Button
         timeFormat = new SimpleDateFormat("HH:mm", Locale.getDefault());
@@ -185,6 +188,51 @@ public class EditRecommendationActivity extends AppCompatActivity implements OnM
                 tvAddedFoodItems.setText("Must Try Food Items: " + food);
             }
         }
+        deletebtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Inflate the custom layout for the AlertDialog
+                View dialogView = getLayoutInflater().inflate(R.layout.dialog_custom_delete, null);
+
+                // Create the AlertDialog with the custom layout
+                AlertDialog.Builder builder = new AlertDialog.Builder(EditRecommendationActivity.this);
+                builder.setView(dialogView);
+
+                // Find views in the custom layout
+                TextView deleteTitle = dialogView.findViewById(R.id.deleteTitle);
+                TextView deleteMessage = dialogView.findViewById(R.id.deleteMessage);
+                Button btnCancelDelete = dialogView.findViewById(R.id.btnCancelDelete);
+                Button btnConfirmDelete = dialogView.findViewById(R.id.btnConfirmDelete);
+
+                // Set the title and message
+                deleteTitle.setText("Delete Recommendation");
+                deleteMessage.setText("Are you sure you want to delete this recommendation?");
+
+                // Create the AlertDialog
+                final AlertDialog dialog = builder.create();
+
+                // Set click listeners for the buttons
+                btnCancelDelete.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        dialog.dismiss(); // Dismiss the dialog when "Cancel" is clicked
+                    }
+                });
+
+                btnConfirmDelete.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        dialog.dismiss(); // Dismiss the dialog when "Delete" is clicked
+                        // Call the deleteRecommendation method here
+                        deleteRecommendation();
+                    }
+                });
+
+                // Show the custom AlertDialog
+                dialog.show();
+            }
+        });
+
 
         btnChooseImage.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -256,6 +304,68 @@ public class EditRecommendationActivity extends AppCompatActivity implements OnM
                 .child(recommendationKey);
 
         addRecommendationValueListener();
+    }
+    private void deleteRecommendation() {
+        // Show a progress dialog while deleting the recommendation
+        final ProgressDialog progressDialog = new ProgressDialog(this);
+        progressDialog.setMessage("Deleting Recommendation...");
+        progressDialog.setCancelable(false); // Prevent dismissal by tapping outside
+        progressDialog.show();
+
+        DatabaseReference recommendationRef = FirebaseDatabase.getInstance().getReference("Creators")
+                .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
+                .child("recommendation")
+                .child(recommendationKey);
+
+        recommendationRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    // Retrieve the image URL from the database
+                    String imageUrl = dataSnapshot.child("imageUrl").getValue(String.class);
+
+                    // Delete the recommendation from the database
+                    dataSnapshot.getRef().removeValue(new DatabaseReference.CompletionListener() {
+                        @Override
+                        public void onComplete(@Nullable DatabaseError error, @NonNull DatabaseReference ref) {
+                            progressDialog.dismiss(); // Dismiss the progress dialog
+
+                            if (error == null) {
+                                // Recommendation deleted successfully
+                                // Now, delete the image from Firebase Storage
+                                if (imageUrl != null && !imageUrl.isEmpty()) {
+                                    StorageReference imageRef = FirebaseStorage.getInstance().getReferenceFromUrl(imageUrl);
+                                    imageRef.delete().addOnCompleteListener(new OnCompleteListener<Void>() {
+                                        @Override
+                                        public void onComplete(@NonNull Task<Void> task) {
+                                            if (task.isSuccessful()) {
+                                                Toast.makeText(EditRecommendationActivity.this, "Recommendation deleted successfully", Toast.LENGTH_SHORT).show();
+                                            } else {
+                                                Toast.makeText(EditRecommendationActivity.this, "Failed to delete image", Toast.LENGTH_SHORT).show();
+                                            }
+                                        }
+                                    });
+                                }
+
+                                // Navigate to ViewRecommendationActivity
+                                Intent intent = new Intent(EditRecommendationActivity.this, ViewRecommendationActivity.class);
+                                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                                startActivity(intent);
+                                finish(); // Close the current activity
+                            } else {
+                                Toast.makeText(EditRecommendationActivity.this, "Failed to delete recommendation", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    });
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                // Handle database errors if needed
+                progressDialog.dismiss(); // Dismiss the progress dialog on error
+            }
+        });
     }
 
     private void showTimePickerDialog() {

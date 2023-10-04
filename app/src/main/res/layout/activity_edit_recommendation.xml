@@ -285,6 +285,15 @@
             android:backgroundTint="@color/darkgreen"
             android:layout_gravity="center"
             android:textSize="20dp"/>
+        <Button
+            android:id="@+id/btnDeleteRecommendation"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="Delete Recommendation"
+            android:backgroundTint="@color/red"
+            android:layout_gravity="center"
+            android:textSize="20dp"/>
 
         <TextView
             android:id="@+id/txtLocation"

@@ -71,7 +71,6 @@ public class ViewRecommendationActivity extends AppCompatActivity {
 
                         TextView hotelNameTextView = recommendationView.findViewById(R.id.hotelNameTextView);
                         Button editButton = recommendationView.findViewById(R.id.editButton);
-                        Button deleteButton = recommendationView.findViewById(R.id.deleteButton);
 
                         hotelNameTextView.setText(hotelName);
 
@@ -139,16 +138,6 @@ public class ViewRecommendationActivity extends AppCompatActivity {
                                 });
                             }
                         });
-
-                        deleteButton.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                // Handle delete action directly
-                                DatabaseReference recommendationToDeleteRef = databaseReference.child(selectedRecommendationKey);
-                                showDeleteConfirmationDialog(recommendationToDeleteRef);
-                            }
-                        });
-
                         recommendationsContainer.addView(recommendationView);
                     }
                 }
@@ -164,50 +153,5 @@ public class ViewRecommendationActivity extends AppCompatActivity {
                 progressDialog.dismiss();
             }
         });
-    }
-
-    private void showDeleteConfirmationDialog(final DatabaseReference recommendationToDeleteRef) {
-        View dialogView = getLayoutInflater().inflate(R.layout.dialog_custom_delete, null);
-
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setView(dialogView);
-        AlertDialog alertDialog = builder.create();
-
-        // Find the buttons in the custom dialog layout
-        Button btnCancelDelete = dialogView.findViewById(R.id.btnCancelDelete);
-        Button btnConfirmDelete = dialogView.findViewById(R.id.btnConfirmDelete);
-
-        // Set click listeners for the custom dialog buttons
-        btnCancelDelete.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Dismiss the dialog if "Cancel" is clicked
-                alertDialog.dismiss();
-            }
-        });
-
-        btnConfirmDelete.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Perform the deletion
-                recommendationToDeleteRef.removeValue()
-                        .addOnSuccessListener(new OnSuccessListener<Void>() {
-                            @Override
-                            public void onSuccess(Void aVoid) {
-                                Toast.makeText(ViewRecommendationActivity.this, "Recommendation Deleted Successfully", Toast.LENGTH_SHORT).show();
-                                alertDialog.dismiss();
-                            }
-                        })
-                        .addOnFailureListener(new OnFailureListener() {
-                            @Override
-                            public void onFailure(@NonNull Exception e) {
-                                Toast.makeText(ViewRecommendationActivity.this, "Failed to delete recommendation", Toast.LENGTH_SHORT).show();
-                            }
-                        });
-            }
-        });
-
-        // Show the custom dialog
-        alertDialog.show();
     }
 }
