@@ -3,6 +3,8 @@ package com.example.hotelrecommendation;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
 import android.view.View;
@@ -34,6 +36,8 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Locale;
 
 public class LocationSelectionActivity extends AppCompatActivity implements OnMapReadyCallback {
 
@@ -42,6 +46,7 @@ public class LocationSelectionActivity extends AppCompatActivity implements OnMa
     private double selectedLatitude;
     private double selectedLongitude;
     private String selectedCityName;
+    private String selectedPostalCode;
 
     private boolean isLocationConfirmed = false;
     private SupportMapFragment mapFragment;
@@ -69,6 +74,7 @@ public class LocationSelectionActivity extends AppCompatActivity implements OnMa
                     Intent resultIntent = new Intent();
                     resultIntent.putExtra("latitude", selectedLatitude);
                     resultIntent.putExtra("longitude", selectedLongitude);
+                    resultIntent.putExtra("postalCode", selectedPostalCode);
                     setResult(RESULT_OK, resultIntent);
                     finish();
                 }
@@ -146,6 +152,7 @@ public class LocationSelectionActivity extends AppCompatActivity implements OnMa
                                 if (addressParts.length > 0) {
                                     selectedCityName = addressParts[addressParts.length - 3].trim();
                                 }
+                                selectedPostalCode = getPostalCode(selectedLatitude, selectedLongitude);
 
                                 runOnUiThread(new Runnable() {
                                     @Override
@@ -157,6 +164,7 @@ public class LocationSelectionActivity extends AppCompatActivity implements OnMa
                                         resultIntent.putExtra("displayName", displayName);
                                         resultIntent.putExtra("placeId", placeId);
                                         resultIntent.putExtra("cityName", selectedCityName); // Pass the city name
+                                        resultIntent.putExtra("postalCode", selectedPostalCode);
                                         setResult(RESULT_OK, resultIntent);
                                         finish();
                                     }
@@ -233,5 +241,18 @@ public class LocationSelectionActivity extends AppCompatActivity implements OnMa
                 btnConfirmLocation.setVisibility(View.VISIBLE);
             }
         });
+    }
+    private String getPostalCode(double latitude, double longitude) {
+        Geocoder geocoder = new Geocoder(LocationSelectionActivity.this, Locale.getDefault());
+        try {
+            List<Address> addresses = geocoder.getFromLocation(latitude, longitude, 1);
+            if (addresses != null && !addresses.isEmpty()) {
+                Address address = addresses.get(0);
+                return address.getPostalCode();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }

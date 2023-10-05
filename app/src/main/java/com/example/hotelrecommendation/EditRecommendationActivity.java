@@ -53,7 +53,7 @@ public class EditRecommendationActivity extends AppCompatActivity implements OnM
     private static final int LOCATION_SELECTION_REQUEST = 2;
     private ImageView profileImage;
     private Button btnChooseImage, btnAddLocation, btnUpdateRecommendation, btnAddFoodItem, deletebtn;
-    private EditText etName, etLink, etAddress, etContactNumber, etFood, ettimings, etcity;
+    private EditText etName, etLink, etAddress, etContactNumber, etFood, ettimings, etcity,etpostalcode;
     private RatingBar ratingBar;
     private Button btnChooseTimings;
     private int startHour, startMinute, endHour, endMinute;
@@ -93,6 +93,7 @@ public class EditRecommendationActivity extends AppCompatActivity implements OnM
         etFood = findViewById(R.id.etfood);
         ettimings = findViewById(R.id.etTimings);
         etcity = findViewById(R.id.etcity);
+        etpostalcode = findViewById(R.id.etpostalcode);
         ratingBar = findViewById(R.id.ratingBar);
         btnChooseImage = findViewById(R.id.btnChooseImage);
         btnAddLocation = findViewById(R.id.btnlocation);
@@ -141,6 +142,7 @@ public class EditRecommendationActivity extends AppCompatActivity implements OnM
             String foodType = extras.getString("foodType");
             String city = extras.getString("city");
             String specialType = extras.getString("specialType");
+            String pincode = extras.getString("pincode");
 
             etName.setText(name);
             etLink.setText(link);
@@ -149,6 +151,7 @@ public class EditRecommendationActivity extends AppCompatActivity implements OnM
             etContactNumber.setText(contactNumber);
             ettimings.setText(timings);
             ratingBar.setRating(rating);
+            etpostalcode.setText(pincode);
             if (foodType != null) {
                 RadioButton radioButton;
                 if (foodType.equalsIgnoreCase("Veg")) {
@@ -505,8 +508,8 @@ public class EditRecommendationActivity extends AppCompatActivity implements OnM
                 placeId = data.getStringExtra("placeId");
                 String cityname = data.getStringExtra("cityName");
                 etcity.setText(cityname);
-
-
+                String postalcode = data.getStringExtra("postalCode");
+                etpostalcode.setText(postalcode);
                 // Set the display name in the hotelName EditText
                 etName.setText(displayName);
 
@@ -550,6 +553,7 @@ public class EditRecommendationActivity extends AppCompatActivity implements OnM
         String updatedLink = etLink.getText().toString().trim();
         String updatedAddress = etAddress.getText().toString().trim();
         String updatedCity = etcity.getText().toString().trim();
+        String updatedpincode = etpostalcode.getText().toString().trim();
         String updatedContactNumber = etContactNumber.getText().toString().trim();
         String updatedtimings = ettimings.getText().toString().trim();
         String updatedFood = tvAddedFoodItems.getText().toString().trim().replace("Must Try Food Items: ", "");
@@ -564,6 +568,7 @@ public class EditRecommendationActivity extends AppCompatActivity implements OnM
         recommendationRef.child("link").setValue(updatedLink);
         recommendationRef.child("address").setValue(updatedAddress);
         recommendationRef.child("city").setValue(updatedCity);
+        recommendationRef.child("pincode").setValue(updatedpincode);
         recommendationRef.child("contactNumber").setValue(updatedContactNumber);
         recommendationRef.child("timings").setValue(updatedtimings);
         recommendationRef.child("food").setValue(updatedFood);

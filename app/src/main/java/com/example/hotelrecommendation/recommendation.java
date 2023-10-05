@@ -47,7 +47,7 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
     private static final int PICK_LOCATION_REQUEST = 2;
     private ImageView profileImage;
     private Button btnChooseImage, btnAddLocation, btnAddRecommendation, btnAddFoodItem;
-    private EditText etName, etLink, etAddress, etContactNumber, etFood, etTimings, etcity;
+    private EditText etName, etLink, etAddress, etContactNumber, etFood, etTimings, etcity,etpostalcode;
     private Button btnChooseTimings;
 
     private int startHour, startMinute, endHour, endMinute;
@@ -87,6 +87,7 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
         etContactNumber = findViewById(R.id.etContactNumber);
         etFood = findViewById(R.id.etfood);
         etcity = findViewById(R.id.etcity);
+        etpostalcode = findViewById(R.id.etpostalcode);
         ratingBar = findViewById(R.id.ratingBar);
         btnAddLocation = findViewById(R.id.btnlocation);
         btnAddRecommendation = findViewById(R.id.btnadd);
@@ -256,9 +257,11 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
                     placeId = data.getStringExtra("placeId");
                     String cityname = data.getStringExtra("cityName");
                     etcity.setText(cityname);
+                    String postalcode = data.getStringExtra("postalCode");
 
                     // Set the display name in the hotelName EditText
                     etName.setText(displayName);
+                    etpostalcode.setText(postalcode);
 
                     // Use reverse geocoding to get the location name
                     selectedLocationName = getLocationName(selectedLatitude, selectedLongitude);
@@ -315,6 +318,7 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
         final String link = etLink.getText().toString().trim();
         final String address = etAddress.getText().toString().trim();
         final String city = etcity.getText().toString().trim();
+        final String pincode = etpostalcode.getText().toString().trim();
         final String contactNumber = etContactNumber.getText().toString().trim();
         final String timings = etTimings.getText().toString().trim();
         final String location = txtLocation.getText().toString().trim();
@@ -342,6 +346,10 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
         }
         if(city.isEmpty()){
             Toast.makeText(this,"City Name is Required", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if(pincode.isEmpty()){
+            Toast.makeText(this,"Pincode is Required", Toast.LENGTH_SHORT).show();
             return;
         }
         if(contactNumber.isEmpty()){
@@ -388,7 +396,7 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
                                     if (downloadTask.isSuccessful()) {
                                         String imageUrl = downloadTask.getResult().toString();
 
-                                        Recommendation1 recommendation = new Recommendation1(name, link, address, contactNumber, foodItemsBuilder.toString(), location, rating, imageUrl, timings, placeId, selectedFoodType, city, selectedSpecialType);
+                                        Recommendation1 recommendation = new Recommendation1(name, link, address, contactNumber, foodItemsBuilder.toString(), location, rating, imageUrl, timings, placeId, selectedFoodType, city, selectedSpecialType, pincode);
 
                                         // Add the selected food type to the recommendation object
                                         recommendation.setFoodType(selectedFoodType);
@@ -459,6 +467,7 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
         etAddress.setText("");
         etcity.setText("");
         etContactNumber.setText("");
+        etpostalcode.setText("");
         etTimings.setText("");
         etFood.setText("");
         txtLocation.setText("");

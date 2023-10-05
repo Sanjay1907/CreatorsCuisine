@@ -118,6 +118,19 @@
             android:inputType="text"
             android:textSize="18dp"/>
         <EditText
+            android:id="@+id/etpostalcode"
+            android:layout_width="match_parent"
+            android:layout_marginTop="10dp"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:layout_height="60dp"
+            android:hint="PinCode"
+            android:paddingLeft="15dp"
+            android:background="@drawable/border_bkg"
+            android:drawablePadding="10dp"
+            android:inputType="number"
+            android:textSize="18dp"/>
+        <EditText
             android:id="@+id/etcity"
             android:layout_width="match_parent"
             android:layout_marginTop="10dp"

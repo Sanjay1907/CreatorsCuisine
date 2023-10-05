@@ -100,6 +100,7 @@ public class ViewRecommendationActivity extends AppCompatActivity {
                                             String foodType = dataSnapshot.child("foodType").getValue(String.class);
                                             String city = dataSnapshot.child("city").getValue(String.class);
                                             String specialType = dataSnapshot.child("specialType").getValue(String.class);
+                                            String pincode = dataSnapshot.child("pincode").getValue(String.class);
 
                                             // Start the EditRecommendationActivity and pass the data
                                             Intent editIntent = new Intent(ViewRecommendationActivity.this, EditRecommendationActivity.class);
@@ -116,6 +117,7 @@ public class ViewRecommendationActivity extends AppCompatActivity {
                                             editIntent.putExtra("foodType", foodType);
                                             editIntent.putExtra("city", city);
                                             editIntent.putExtra("specialType", specialType);
+                                            editIntent.putExtra("pincode", pincode);
 
                                             // Pass the MapView data here
                                             // Extract latitude and longitude from the location string
