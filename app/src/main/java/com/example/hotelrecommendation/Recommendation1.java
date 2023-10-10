@@ -18,15 +18,13 @@ public class Recommendation1 {
     private String timings;
     private String placeId;
     private String foodType;
-    private String city;
     private String specialType;
-    private String pincode;
-
+    private String hashtag;
     public Recommendation1() {
         // Default constructor required for calls to DataSnapshot.getValue(Recommendation1.class)
     }
 
-    public Recommendation1(String name, String link, String address, String contactNumber, String food, String location, float rating, String imageUrl, String timings, String placeId, String foodType, String city, String specialType, String pincode) {
+    public Recommendation1(String name, String link, String address, String contactNumber, String food, String location, float rating, String imageUrl, String timings, String placeId, String foodType, String specialType, String hashtag) {
         this.name = name;
         this.link = link;
         this.address = address;
@@ -38,9 +36,8 @@ public class Recommendation1 {
         this.timings = timings;
         this.placeId = placeId;
         this.foodType = foodType;
-        this.city = city;
         this.specialType = specialType;
-        this.pincode = pincode;
+        this.hashtag = hashtag;
     }
 
 
@@ -103,10 +100,6 @@ public class Recommendation1 {
     public void setFoodType(String foodType) {
         this.foodType = foodType;
     }
-    @PropertyName("city")
-    public String getcity() {
-        return city;
-    }
     public String getSpecialType() {
         return specialType;
     }
@@ -114,8 +107,8 @@ public class Recommendation1 {
     public void setSpecialType(String specialType) {
         this.specialType = specialType;
     }
-    @PropertyName("pincode")
-    public String getPincode() {
-        return pincode;
+    @PropertyName("hashtag")
+    public String getHashtag() {
+        return hashtag;
     }
 }

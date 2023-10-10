@@ -24,6 +24,8 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import android.util.Log;
+
 
 public class MainActivity extends AppCompatActivity {
 
@@ -45,7 +47,7 @@ public class MainActivity extends AppCompatActivity {
         progressDialog.setMessage("Fetching user data...");
         progressDialog.setCancelable(false);
         progressDialog.show();
-
+        Log.d("MainActivity", "onCreate() method called");
         mAuth = FirebaseAuth.getInstance();
         databaseReference = FirebaseDatabase.getInstance().getReference("Creators")
                 .child(mAuth.getCurrentUser().getUid());
@@ -65,12 +67,13 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     progressDialog.dismiss(); // Dismiss the progress dialog when data is fetched
                 }
+                Log.d("MainActivity", "Data fetched successfully");
             }
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
                 progressDialog.dismiss(); // Dismiss the progress dialog on database error
-                // Handle database read error, if any.
+                Log.e("MainActivity", "Database error: " + databaseError.getMessage());
             }
         });
 
@@ -135,6 +138,7 @@ public class MainActivity extends AppCompatActivity {
         btnLogout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                Log.d("MainActivity", "Logout button clicked");
                 // Inflate the custom logout dialog layout
                 View dialogView = getLayoutInflater().inflate(R.layout.dialog_custom_logout, null);
 
@@ -265,8 +269,10 @@ public class MainActivity extends AppCompatActivity {
         if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 // Location permission granted, you can proceed with your app logic
+                Log.i("MainActivity", "Location permission granted");
             } else {
                 // Location permission denied, handle it as needed
+                Log.w("MainActivity", "Location permission denied");
             }
         }
     }

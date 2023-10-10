@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -37,6 +38,7 @@ import java.util.Map;
 public class ProfileActivity extends AppCompatActivity {
 
     private static final int PICK_IMAGE_REQUEST = 1;
+    private static final String TAG = "ProfileActivity";
 
     private EditText etName, etEmail, etContactNumber, etChannelname, etChannellink, etinstaid, etName2;
     private ImageView profileImage;
@@ -51,6 +53,7 @@ public class ProfileActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
+        Log.d(TAG, "onCreate: ProfileActivity started");
 
         etName = findViewById(R.id.etName);
         etName2 = findViewById(R.id.etName2);
@@ -83,6 +86,7 @@ public class ProfileActivity extends AppCompatActivity {
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 progressDialog.dismiss(); // Dismiss the progress dialog when data is fetched
                 if (dataSnapshot.exists()) {
+                    Log.d(TAG, "DataSnapshot exists");
                     String nameFromDb = dataSnapshot.child("name").getValue(String.class);
                     String name2FromDb = dataSnapshot.child("name2").getValue(String.class);
                     String emailFromDb = dataSnapshot.child("email").getValue(String.class);
@@ -102,14 +106,18 @@ public class ProfileActivity extends AppCompatActivity {
                     // Load profile image if available using Glide
                     if (imageUrlFromDb != null && !imageUrlFromDb.isEmpty()) {
                         Glide.with(ProfileActivity.this).load(imageUrlFromDb).into(profileImage);
+                    }else{
+                        Log.w(TAG, "Image URL not found in database");
                     }
+                }else{
+                    Log.d(TAG, "DataSnapshot does not exist");
                 }
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
                 progressDialog.dismiss(); // Dismiss the progress dialog on database error
-                // Handle the error, if any.
+                Log.e(TAG, "Database error: " + databaseError.getMessage());
             }
         });
 
@@ -129,7 +137,7 @@ public class ProfileActivity extends AppCompatActivity {
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-                // Handle the error, if any.
+                Log.e(TAG, "Database error: " + databaseError.getMessage());
             }
         });
 
@@ -158,7 +166,7 @@ public class ProfileActivity extends AppCompatActivity {
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-                // Handle the error, if any.
+                Log.e(TAG, "Database error: " + databaseError.getMessage());
             }
         });
 

@@ -8,6 +8,7 @@ import android.location.Address;
 import android.location.Geocoder;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -51,9 +52,10 @@ public class EditRecommendationActivity extends AppCompatActivity implements OnM
 
     private static final int PICK_IMAGE_REQUEST = 1;
     private static final int LOCATION_SELECTION_REQUEST = 2;
+    private static final String LOG_TAG = "EditRecommendationActivity";
     private ImageView profileImage;
     private Button btnChooseImage, btnAddLocation, btnUpdateRecommendation, btnAddFoodItem, deletebtn;
-    private EditText etName, etLink, etAddress, etContactNumber, etFood, ettimings, etcity,etpostalcode;
+    private EditText etName, etLink, etAddress, etContactNumber, etFood, ettimings,ethashtag;
     private RatingBar ratingBar;
     private Button btnChooseTimings;
     private int startHour, startMinute, endHour, endMinute;
@@ -92,8 +94,7 @@ public class EditRecommendationActivity extends AppCompatActivity implements OnM
         etContactNumber = findViewById(R.id.etContactNumber);
         etFood = findViewById(R.id.etfood);
         ettimings = findViewById(R.id.etTimings);
-        etcity = findViewById(R.id.etcity);
-        etpostalcode = findViewById(R.id.etpostalcode);
+        ethashtag = findViewById(R.id.ethashtag);
         ratingBar = findViewById(R.id.ratingBar);
         btnChooseImage = findViewById(R.id.btnChooseImage);
         btnAddLocation = findViewById(R.id.btnlocation);
@@ -140,18 +141,16 @@ public class EditRecommendationActivity extends AppCompatActivity implements OnM
             String location = extras.getString("location");
             String timings = extras.getString("timings");
             String foodType = extras.getString("foodType");
-            String city = extras.getString("city");
             String specialType = extras.getString("specialType");
-            String pincode = extras.getString("pincode");
+            String hashtag = extras.getString("hashtag");
 
             etName.setText(name);
             etLink.setText(link);
             etAddress.setText(address);
-            etcity.setText(city);
             etContactNumber.setText(contactNumber);
             ettimings.setText(timings);
             ratingBar.setRating(rating);
-            etpostalcode.setText(pincode);
+            ethashtag.setText(hashtag);
             if (foodType != null) {
                 RadioButton radioButton;
                 if (foodType.equalsIgnoreCase("Veg")) {
@@ -387,6 +386,7 @@ public class EditRecommendationActivity extends AppCompatActivity implements OnM
                             isChoosingStartTime = false; // Now, the user will choose close time
                             btnChooseTimings.setText("Choose Closing Time");
                             showToast("Choose hotel closing time");
+                            Log.d(LOG_TAG, "Start time selected: " + formatTime(startHour, startMinute));
                         }
                     }, currentHour, currentMinute, true);
             timePickerDialog.show();
@@ -401,6 +401,7 @@ public class EditRecommendationActivity extends AppCompatActivity implements OnM
                             ettimings.append(formatTime(endHour, endMinute));
                             isChoosingStartTime = true; // Reset to choose start time next time
                             btnChooseTimings.setText("Choose Timings");
+                            Log.d(LOG_TAG, "End time selected: " + formatTime(endHour, endMinute));
                         }
                     }, currentHour, currentMinute, true);
             timePickerDialog.show();
@@ -439,7 +440,7 @@ public class EditRecommendationActivity extends AppCompatActivity implements OnM
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-                // Handle database errors if needed
+                Log.e(LOG_TAG, "DatabaseError: " + databaseError.getMessage());
             }
         });
     }
@@ -506,10 +507,6 @@ public class EditRecommendationActivity extends AppCompatActivity implements OnM
 
                 String displayName = data.getStringExtra("displayName"); // Get the display name
                 placeId = data.getStringExtra("placeId");
-                String cityname = data.getStringExtra("cityName");
-                etcity.setText(cityname);
-                String postalcode = data.getStringExtra("postalCode");
-                etpostalcode.setText(postalcode);
                 // Set the display name in the hotelName EditText
                 etName.setText(displayName);
 
@@ -552,12 +549,11 @@ public class EditRecommendationActivity extends AppCompatActivity implements OnM
         String updatedName = etName.getText().toString().trim();
         String updatedLink = etLink.getText().toString().trim();
         String updatedAddress = etAddress.getText().toString().trim();
-        String updatedCity = etcity.getText().toString().trim();
-        String updatedpincode = etpostalcode.getText().toString().trim();
         String updatedContactNumber = etContactNumber.getText().toString().trim();
         String updatedtimings = ettimings.getText().toString().trim();
         String updatedFood = tvAddedFoodItems.getText().toString().trim().replace("Must Try Food Items: ", "");
         float updatedRating = ratingBar.getRating();
+        String updatedhashtag = ethashtag.getText().toString().trim();
 
         DatabaseReference recommendationRef = FirebaseDatabase.getInstance().getReference("Creators")
                 .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
@@ -567,12 +563,11 @@ public class EditRecommendationActivity extends AppCompatActivity implements OnM
         recommendationRef.child("name").setValue(updatedName);
         recommendationRef.child("link").setValue(updatedLink);
         recommendationRef.child("address").setValue(updatedAddress);
-        recommendationRef.child("city").setValue(updatedCity);
-        recommendationRef.child("pincode").setValue(updatedpincode);
         recommendationRef.child("contactNumber").setValue(updatedContactNumber);
         recommendationRef.child("timings").setValue(updatedtimings);
         recommendationRef.child("food").setValue(updatedFood);
         recommendationRef.child("rating").setValue(updatedRating);
+        recommendationRef.child("hashtag").setValue(updatedhashtag);
         if (!selectedFoodType.isEmpty()) {
             recommendationRef.child("foodType").setValue(selectedFoodType);
         }

@@ -6,6 +6,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.OpenableColumns;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -44,6 +45,7 @@ public class RequestVerificationActivity extends AppCompatActivity {
     private StorageReference storageReference;
     private boolean formSubmitted = false; // To track if the form has been submitted
     private ProgressDialog progressDialog;
+    private static final String TAG = "RequestVerification";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -137,7 +139,7 @@ public class RequestVerificationActivity extends AppCompatActivity {
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-                // Handle database error
+                Log.e(TAG, "Database error: " + databaseError.getMessage());
             }
         });
     }
@@ -223,6 +225,7 @@ public class RequestVerificationActivity extends AppCompatActivity {
                         .addOnFailureListener(new OnFailureListener() {
                             @Override
                             public void onFailure(@NonNull Exception e) {
+                                Log.e(TAG, "Document upload failed: " + e.getMessage());
                                 progressDialog.dismiss(); // Dismiss the progress dialog
                                 Toast.makeText(RequestVerificationActivity.this,
                                         "Document upload failed", Toast.LENGTH_SHORT).show();

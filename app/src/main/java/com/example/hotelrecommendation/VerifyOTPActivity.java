@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -28,7 +29,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import java.util.concurrent.TimeUnit;
 
 public class VerifyOTPActivity extends AppCompatActivity {
-
+    private static final String TAG = "VerifyOTPActivity";
     private EditText in1, in2, in3, in4, in5, in6;
     private String verificationId;
     private Button resendOTP;
@@ -66,6 +67,7 @@ public class VerifyOTPActivity extends AppCompatActivity {
                         || in4.getText().toString().trim().isEmpty()
                         || in5.getText().toString().trim().isEmpty()
                         || in6.getText().toString().trim().isEmpty()) {
+                    Log.d(TAG, "Invalid OTP entered.");
                     Toast.makeText(VerifyOTPActivity.this, "Please enter the valid OTP", Toast.LENGTH_SHORT).show();
                     return;
                 }
@@ -92,6 +94,7 @@ public class VerifyOTPActivity extends AppCompatActivity {
                                     progressBar.setVisibility(View.GONE);
                                     verifyOTp.setVisibility(View.VISIBLE);
                                     if (task.isSuccessful()) {
+                                        Log.d(TAG, "Phone number verification successful.");
                                         // Phone number verification successful.
                                         // Save the phone number in the Realtime Database.
                                         savePhoneNumberInDatabase(FirebaseAuth.getInstance().getCurrentUser().getUid());
@@ -100,6 +103,7 @@ public class VerifyOTPActivity extends AppCompatActivity {
                                         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                                         startActivity(intent);
                                     } else {
+                                        Log.e(TAG, "The OTP entered was invalid.");
                                         Toast.makeText(VerifyOTPActivity.this, "The OTP entered was invalid", Toast.LENGTH_SHORT).show();
                                     }
                                 }
@@ -131,12 +135,14 @@ public class VerifyOTPActivity extends AppCompatActivity {
 
                             @Override
                             public void onVerificationFailed(@NonNull FirebaseException e) {
+                                Log.e(TAG, "Verification failed: " + e.getMessage());
                                 Toast.makeText(VerifyOTPActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
                             }
 
                             @Override
                             public void onCodeSent(@NonNull String newverificationId, @NonNull PhoneAuthProvider.ForceResendingToken forceResendingToken) {
                                 verificationId = newverificationId;
+                                Log.d(TAG, "OTP Sent");
                                 Toast.makeText(VerifyOTPActivity.this, "OTP Sent", Toast.LENGTH_SHORT).show();
 
                                 // Start the countdown timer

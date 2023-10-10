@@ -7,6 +7,7 @@ import android.location.Address;
 import android.location.Geocoder;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -47,7 +48,7 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
     private static final int PICK_LOCATION_REQUEST = 2;
     private ImageView profileImage;
     private Button btnChooseImage, btnAddLocation, btnAddRecommendation, btnAddFoodItem;
-    private EditText etName, etLink, etAddress, etContactNumber, etFood, etTimings, etcity,etpostalcode;
+    private EditText etName, etLink, etAddress, etContactNumber, etFood, etTimings;
     private Button btnChooseTimings;
 
     private int startHour, startMinute, endHour, endMinute;
@@ -73,6 +74,9 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
     private String selectedFoodType = ""; // To store the selected food type
     private String selectedSpecialType = "";
     private StringBuilder foodItemsBuilder; // To store food items.
+    private EditText etHashtags;
+    private static final String LOG_TAG = "recommendation";
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,8 +90,7 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
         etAddress = findViewById(R.id.etaddress);
         etContactNumber = findViewById(R.id.etContactNumber);
         etFood = findViewById(R.id.etfood);
-        etcity = findViewById(R.id.etcity);
-        etpostalcode = findViewById(R.id.etpostalcode);
+        etHashtags = findViewById(R.id.ethashtag);
         ratingBar = findViewById(R.id.ratingBar);
         btnAddLocation = findViewById(R.id.btnlocation);
         btnAddRecommendation = findViewById(R.id.btnadd);
@@ -113,6 +116,7 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
         Veg = findViewById(R.id.Veg);
         NonVeg = findViewById(R.id.NonVeg);
         both = findViewById(R.id.both);
+
 
         // Set an OnCheckedChangeListener for the radio group
         radioButtonVeg.setOnClickListener(new View.OnClickListener() {
@@ -171,6 +175,7 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
         btnAddRecommendation.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Log.d(LOG_TAG, "Add Recommendation button clicked");
                 addRecommendation();
             }
         });
@@ -183,6 +188,7 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
         btnAddFoodItem.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Log.d(LOG_TAG, "Add Food Item button clicked");
                 addFoodItem();
             }
         });
@@ -193,7 +199,6 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
         int currentMinute = calendar.get(Calendar.MINUTE);
 
         if (isChoosingStartTime) {
-            // User is choosing the start time
             TimePickerDialog timePickerDialog = new TimePickerDialog(this,
                     new TimePickerDialog.OnTimeSetListener() {
                         @Override
@@ -201,14 +206,16 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
                             startHour = hourOfDay;
                             startMinute = minute;
                             etTimings.setText(formatTime(startHour, startMinute) + " - ");
-                            isChoosingStartTime = false; // Now, the user will choose close time
+                            isChoosingStartTime = false;
                             btnChooseTimings.setText("Choose Closing Time");
                             showToast("Choose hotel closing time");
+
+                            // Add log for choosing start time
+                            Log.d(LOG_TAG, "Start time selected: " + formatTime(startHour, startMinute));
                         }
                     }, currentHour, currentMinute, true);
             timePickerDialog.show();
         } else {
-            // User is choosing the close time
             TimePickerDialog timePickerDialog = new TimePickerDialog(this,
                     new TimePickerDialog.OnTimeSetListener() {
                         @Override
@@ -216,8 +223,11 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
                             endHour = hourOfDay;
                             endMinute = minute;
                             etTimings.append(formatTime(endHour, endMinute));
-                            isChoosingStartTime = true; // Reset to choose start time next time
+                            isChoosingStartTime = true;
                             btnChooseTimings.setText("Choose Timings");
+
+                            // Add log for choosing end time
+                            Log.d(LOG_TAG, "End time selected: " + formatTime(endHour, endMinute));
                         }
                     }, currentHour, currentMinute, true);
             timePickerDialog.show();
@@ -248,6 +258,7 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
         if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null && data.getData() != null) {
             imageUri = data.getData();
             profileImage.setImageURI(imageUri);
+            Log.d(LOG_TAG, "Image selected successfully");
         } else if (requestCode == PICK_LOCATION_REQUEST) {
             if (resultCode == RESULT_OK) {
                 if (data != null) {
@@ -255,13 +266,10 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
                     selectedLongitude = data.getDoubleExtra("longitude", 0.0);
                     String displayName = data.getStringExtra("displayName"); // Get the display name
                     placeId = data.getStringExtra("placeId");
-                    String cityname = data.getStringExtra("cityName");
-                    etcity.setText(cityname);
-                    String postalcode = data.getStringExtra("postalCode");
+
 
                     // Set the display name in the hotelName EditText
                     etName.setText(displayName);
-                    etpostalcode.setText(postalcode);
 
                     // Use reverse geocoding to get the location name
                     selectedLocationName = getLocationName(selectedLatitude, selectedLongitude);
@@ -280,9 +288,11 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
                         googleMap.addMarker(new MarkerOptions().position(locationLatLng).title("Hotel Location"));
                         googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(locationLatLng, 15));
                     }
+                    Log.d(LOG_TAG, "Location selected: Latitude=" + selectedLatitude + ", Longitude=" + selectedLongitude);
                 }
             } else if (resultCode == RESULT_CANCELED) {
                 Toast.makeText(this, "Location selection canceled", Toast.LENGTH_SHORT).show();
+                Log.d(LOG_TAG, "Location selection canceled");
             }
         }
     }
@@ -310,6 +320,7 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
             if (tvAddedFoodItems.getVisibility() == View.GONE) {
                 tvAddedFoodItems.setVisibility(View.VISIBLE);
             }
+            Log.d(LOG_TAG, "Added food item: " + foodItem);
         }
     }
 
@@ -317,12 +328,11 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
         final String name = etName.getText().toString().trim();
         final String link = etLink.getText().toString().trim();
         final String address = etAddress.getText().toString().trim();
-        final String city = etcity.getText().toString().trim();
-        final String pincode = etpostalcode.getText().toString().trim();
         final String contactNumber = etContactNumber.getText().toString().trim();
         final String timings = etTimings.getText().toString().trim();
         final String location = txtLocation.getText().toString().trim();
         final float rating = ratingBar.getRating();
+        final String hashtag = etHashtags.getText().toString().trim();
 
         if(imageUri==null){
             Toast.makeText(this,"Hotel Image is Required", Toast.LENGTH_SHORT).show();
@@ -344,12 +354,8 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
             Toast.makeText(this,"Hotel Address is Required", Toast.LENGTH_SHORT).show();
             return;
         }
-        if(city.isEmpty()){
-            Toast.makeText(this,"City Name is Required", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        if(pincode.isEmpty()){
-            Toast.makeText(this,"Pincode is Required", Toast.LENGTH_SHORT).show();
+        if(hashtag.isEmpty()){
+            Toast.makeText(this,"Give atleast one hastag", Toast.LENGTH_SHORT).show();
             return;
         }
         if(contactNumber.isEmpty()){
@@ -396,7 +402,7 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
                                     if (downloadTask.isSuccessful()) {
                                         String imageUrl = downloadTask.getResult().toString();
 
-                                        Recommendation1 recommendation = new Recommendation1(name, link, address, contactNumber, foodItemsBuilder.toString(), location, rating, imageUrl, timings, placeId, selectedFoodType, city, selectedSpecialType, pincode);
+                                        Recommendation1 recommendation = new Recommendation1(name, link, address, contactNumber, foodItemsBuilder.toString(), location, rating, imageUrl, timings, placeId, selectedFoodType, selectedSpecialType, hashtag);
 
                                         // Add the selected food type to the recommendation object
                                         recommendation.setFoodType(selectedFoodType);
@@ -408,12 +414,14 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
                                                     public void onComplete(@NonNull Task<Void> addTask) {
                                                         progressDialog.dismiss();
                                                         if (addTask.isSuccessful()) {
+                                                            Log.d(LOG_TAG, "Recommendation added successfully");
                                                             Toast.makeText(recommendation.this, "Recommendation added successfully", Toast.LENGTH_SHORT).show();
                                                             Intent intent = new Intent(recommendation.this, MainActivity.class);
                                                             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP); // Clear the back stack
                                                             startActivity(intent);
                                                             finish();
                                                         } else {
+                                                            Log.d(LOG_TAG, "Failed to add recommendation");
                                                             Toast.makeText(recommendation.this, "Failed to add recommendation", Toast.LENGTH_SHORT).show();
                                                         }
                                                     }
@@ -465,9 +473,7 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
         etName.setText("");
         etLink.setText("");
         etAddress.setText("");
-        etcity.setText("");
         etContactNumber.setText("");
-        etpostalcode.setText("");
         etTimings.setText("");
         etFood.setText("");
         txtLocation.setText("");

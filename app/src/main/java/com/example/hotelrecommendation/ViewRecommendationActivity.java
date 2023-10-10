@@ -4,6 +4,7 @@ import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
@@ -33,6 +34,7 @@ public class ViewRecommendationActivity extends AppCompatActivity {
     private DatabaseReference databaseReference;
     private ArrayList<String> recommendationKeys;
     private ProgressDialog progressDialog;
+    private static final String TAG = "ViewRecommendation";
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -53,7 +55,7 @@ public class ViewRecommendationActivity extends AppCompatActivity {
 
         // Show the progress dialog before starting to fetch data
         progressDialog.show();
-
+        Log.d(TAG, "Fetching recommendation data...");
         // Read data from the database and populate the recommendationsContainer
         query.addValueEventListener(new ValueEventListener() {
             @Override
@@ -98,9 +100,8 @@ public class ViewRecommendationActivity extends AppCompatActivity {
                                             float rating = dataSnapshot.child("rating").getValue(Float.class);
                                             String imageUrl = dataSnapshot.child("imageUrl").getValue(String.class); // Get the image URL
                                             String foodType = dataSnapshot.child("foodType").getValue(String.class);
-                                            String city = dataSnapshot.child("city").getValue(String.class);
                                             String specialType = dataSnapshot.child("specialType").getValue(String.class);
-                                            String pincode = dataSnapshot.child("pincode").getValue(String.class);
+                                            String hashtag = dataSnapshot.child("hashtag").getValue(String.class);
 
                                             // Start the EditRecommendationActivity and pass the data
                                             Intent editIntent = new Intent(ViewRecommendationActivity.this, EditRecommendationActivity.class);
@@ -115,9 +116,8 @@ public class ViewRecommendationActivity extends AppCompatActivity {
                                             editIntent.putExtra("rating", rating);
                                             editIntent.putExtra("imageUrl", imageUrl); // Pass the image URL
                                             editIntent.putExtra("foodType", foodType);
-                                            editIntent.putExtra("city", city);
                                             editIntent.putExtra("specialType", specialType);
-                                            editIntent.putExtra("pincode", pincode);
+                                            editIntent.putExtra("hashtag", hashtag);
 
                                             // Pass the MapView data here
                                             // Extract latitude and longitude from the location string
@@ -136,6 +136,7 @@ public class ViewRecommendationActivity extends AppCompatActivity {
                                         // Handle the error
                                         // Dismiss the progress dialog in case of an error as well
                                         progressDialog.dismiss();
+                                        Log.e(TAG, "Database error while fetching recommendation data: " + databaseError.getMessage());
                                     }
                                 });
                             }
@@ -146,6 +147,7 @@ public class ViewRecommendationActivity extends AppCompatActivity {
 
                 // Dismiss the progress dialog once all recommendations are loaded
                 progressDialog.dismiss();
+                Log.d(TAG, "Recommendation data fetched successfully.");
             }
 
             @Override
@@ -153,6 +155,7 @@ public class ViewRecommendationActivity extends AppCompatActivity {
                 // Handle the error
                 // Dismiss the progress dialog in case of an error
                 progressDialog.dismiss();
+                Log.e(TAG, "Database error: " + databaseError.getMessage());
             }
         });
     }

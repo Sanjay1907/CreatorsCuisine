@@ -7,6 +7,7 @@ import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.RelativeLayout;
@@ -39,6 +40,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
+
 public class LocationSelectionActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
@@ -50,12 +52,13 @@ public class LocationSelectionActivity extends AppCompatActivity implements OnMa
 
     private boolean isLocationConfirmed = false;
     private SupportMapFragment mapFragment;
+    private static final String TAG = "LocationSelectionActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_location_selection);
-
+        Log.d(TAG, "onCreate: LocationSelectionActivity created");
         // Initialize Places API with your API key
         Places.initialize(getApplicationContext(), "AIzaSyDHoXOg6fB7_Aj9u9hCCkM76W0CzN5pZHE");
 
@@ -117,6 +120,7 @@ public class LocationSelectionActivity extends AppCompatActivity implements OnMa
             @Override
             public void onError(@NonNull Status status) {
                 // Handle any errors
+                Log.e(TAG, "Place selection error: " + status.getStatusMessage()); // Log an error message
                 Toast.makeText(LocationSelectionActivity.this, "Error: " + status.getStatusMessage(), Toast.LENGTH_SHORT).show();
             }
         });
@@ -173,6 +177,7 @@ public class LocationSelectionActivity extends AppCompatActivity implements OnMa
                         }
                     } catch (JSONException e) {
                         e.printStackTrace();
+                        Log.e(TAG, "JSON parsing error: " + e.getMessage()); // Log an error message
                     }
                 }
             }
@@ -180,6 +185,7 @@ public class LocationSelectionActivity extends AppCompatActivity implements OnMa
             @Override
             public void onFailure(okhttp3.Call call, IOException e) {
                 e.printStackTrace();
+                Log.e(TAG, "Network request failed: " + e.getMessage());
             }
         });
     }
@@ -252,6 +258,7 @@ public class LocationSelectionActivity extends AppCompatActivity implements OnMa
             }
         } catch (IOException e) {
             e.printStackTrace();
+            Log.e(TAG, "Geocoder error: " + e.getMessage());
         }
         return null;
     }
