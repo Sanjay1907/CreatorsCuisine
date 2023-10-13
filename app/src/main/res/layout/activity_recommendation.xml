@@ -262,7 +262,6 @@
             android:background="@drawable/border_bkg"
             android:drawablePadding="10dp"
             android:inputType="text"/>
-
         <RatingBar
             android:id="@+id/ratingBar"
             android:layout_width="wrap_content"

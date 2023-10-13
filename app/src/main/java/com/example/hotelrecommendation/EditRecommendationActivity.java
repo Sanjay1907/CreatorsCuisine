@@ -2,8 +2,10 @@ package com.example.hotelrecommendation;
 
 import android.app.ProgressDialog;
 import android.app.TimePickerDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.location.Address;
 import android.location.Geocoder;
 import android.net.Uri;
@@ -42,8 +44,11 @@ import com.google.firebase.storage.UploadTask;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
+
 import com.google.firebase.database.DataSnapshot;
 import android.widget.RadioGroup;
 import android.widget.RadioButton;
@@ -82,6 +87,8 @@ public class EditRecommendationActivity extends AppCompatActivity implements OnM
 
     private Geocoder geocoder;
     private String placeId;
+    private Set<String> addedHashtags = new HashSet<>();
+    private int foodItemNumber=1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -444,42 +451,72 @@ public class EditRecommendationActivity extends AppCompatActivity implements OnM
             }
         });
     }
-
     private void addFoodItem() {
         String foodItem = etFood.getText().toString().trim();
 
         if (!foodItem.isEmpty()) {
-            // Get the current food items text
+            // Split the food item into words
+            String[] words = foodItem.split(" ");
+
+            // Loop through the words and add hashtags
+            StringBuilder hashtags = new StringBuilder();
+            String existingHashtags = ethashtag.getText().toString();
+
+            for (String word : words) {
+                if (word.length() > 0) {
+                    // Convert the word to lowercase for case-insensitive comparison
+                    String lowercaseWord = word.toLowerCase();
+
+                    // Check if the lowercase word is already in the existing hashtags
+                    if (!existingHashtags.contains("#" + lowercaseWord)) {
+                        // Add a hashtag and the word to the ethashtag field
+                        ethashtag.append("#" + word + " ");
+                    }
+                }
+            }
+
+            // Find the highest existing serial number from the food items
             String currentFoodItems = tvAddedFoodItems.getText().toString().trim();
+            int lastItemNumber = foodItemNumber; // Initialize with the current value
 
-            // Check if "Must Try Food Items:" is already in the text
-            boolean mustTryItemsExist = currentFoodItems.startsWith("Must Try Food Items:\n");
+            if (!currentFoodItems.isEmpty()) {
+                String[] foodItems = currentFoodItems.split("\n");
+                for (String item : foodItems) {
+                    String itemNumberStr = item.split("\\.")[0].trim();
+                    try {
+                        int itemNumber = Integer.parseInt(itemNumberStr);
+                        if (itemNumber > lastItemNumber) {
+                            lastItemNumber = itemNumber;
+                        }
+                    } catch (NumberFormatException e) {
+                        // Handle parsing error if needed
+                    }
+                }
+            }
 
-            // Split the text into lines
-            String[] lines = currentFoodItems.split("\n");
+            // Set the next serial number based on the highest existing one
+            foodItemNumber = lastItemNumber + 1;
 
-            // Calculate the next serial number
-            int nextSno = mustTryItemsExist ? lines.length : lines.length + 1;
+            // Append the new food item with the next serial number
+            String newFoodItem = foodItemNumber + ". " + foodItem;
 
-            // Create the new food item with the serial number
-            String newFoodItem = nextSno + ". " + foodItem;
-
-            // Append the new food item to the existing text with a new line
+            // Append the new food item to the existing food items if any
             String updatedFoodItems = currentFoodItems.isEmpty() ? newFoodItem : currentFoodItems + "\n" + newFoodItem;
 
-            // Set the updated food items text
-            if (!mustTryItemsExist) {
-                updatedFoodItems = "" + updatedFoodItems;
-            }
+            // Update the TextView with the current list of food items
             tvAddedFoodItems.setText(updatedFoodItems);
 
             // Clear the EditText
             etFood.setText("");
+
+            // Set the TextView as visible if it was initially invisible
+            if (tvAddedFoodItems.getVisibility() == View.GONE) {
+                tvAddedFoodItems.setVisibility(View.VISIBLE);
+            }
+
+            Log.d(LOG_TAG, "Added food item: " + foodItem);
         }
     }
-
-
-
 
     private void chooseImage() {
         Intent intent = new Intent();

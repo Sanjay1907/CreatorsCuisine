@@ -39,8 +39,10 @@ import com.google.firebase.storage.UploadTask;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 public class recommendation extends AppCompatActivity implements OnMapReadyCallback {
 
@@ -76,6 +78,8 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
     private StringBuilder foodItemsBuilder; // To store food items.
     private EditText etHashtags;
     private static final String LOG_TAG = "recommendation";
+    private Set<String> addedHashtags = new HashSet<>();
+
 
 
     @Override
@@ -301,6 +305,25 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
         String foodItem = etFood.getText().toString().trim();
 
         if (!foodItem.isEmpty()) {
+            // Split the food item into words
+            String[] words = foodItem.split(" ");
+
+            // Loop through the words and add hashtags
+            StringBuilder hashtags = new StringBuilder();
+            String existingHashtags = etHashtags.getText().toString();
+
+            for (String word : words) {
+                if (word.length() > 0) {
+                    // Convert the word to lowercase for case-insensitive comparison
+                    String lowercaseWord = word.toLowerCase();
+
+                    // Check if the lowercase word is already in the existing hashtags
+                    if (!existingHashtags.contains("#" + lowercaseWord)) {
+                        // Add a hashtag and the word to the ethashtag field
+                        etHashtags.append("#" + word + " ");
+                    }
+                }
+            }
             // Append the food item with the item number and a period
             if (foodItemsBuilder.length() > 0) {
                 foodItemsBuilder.append("\n"); // Add a new line
@@ -320,10 +343,13 @@ public class recommendation extends AppCompatActivity implements OnMapReadyCallb
             if (tvAddedFoodItems.getVisibility() == View.GONE) {
                 tvAddedFoodItems.setVisibility(View.VISIBLE);
             }
+
+            // Append the hashtags to the etHashtags field
+            etHashtags.append(hashtags);
+
             Log.d(LOG_TAG, "Added food item: " + foodItem);
         }
     }
-
     private void addRecommendation() {
         final String name = etName.getText().toString().trim();
         final String link = etLink.getText().toString().trim();

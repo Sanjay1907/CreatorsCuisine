@@ -200,7 +200,6 @@
             android:hint="Hotel Timings (e.g., 8am - 9pm)"
             android:textSize="18dp"
             android:inputType="text"/>
-
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -233,7 +232,7 @@
         <TextView
             android:id="@+id/tvAddedFoodItems"
             android:layout_width="match_parent"
-            android:layout_height="60dp"
+            android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             android:layout_marginLeft="20dp"
             android:layout_marginRight="20dp"
