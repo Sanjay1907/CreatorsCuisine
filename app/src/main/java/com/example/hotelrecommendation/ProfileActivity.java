@@ -237,7 +237,10 @@ public class ProfileActivity extends AppCompatActivity {
             Toast.makeText(this, "Name is required.", Toast.LENGTH_SHORT).show();
             return;
         }
-
+        if (imageUri == null) {
+            Toast.makeText(this, "Profile image is mandatory.", Toast.LENGTH_SHORT).show();
+            return;
+        }
         // Check if email is in a valid format
         if (!isValidEmail(email)) {
             Toast.makeText(this, "Please enter a valid email address.", Toast.LENGTH_SHORT).show();
@@ -324,6 +327,41 @@ public class ProfileActivity extends AppCompatActivity {
         // Check if the input matches the regular expression
         return url.matches(urlRegex);
     }
+    private void uploadNewProfileImage(final String imageFileName) {
+        // Create a reference to the storage location where the image will be uploaded
+        final StorageReference imageReference = storageReference.child(imageFileName);
+
+        // Upload the image to the storage location
+        UploadTask uploadTask = imageReference.putFile(imageUri);
+
+        uploadTask.addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
+                if (task.isSuccessful()) {
+                    // Image uploaded successfully, get the download URL
+                    imageReference.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                        @Override
+                        public void onSuccess(Uri downloadUrl) {
+                            // Update the user's profile with the new image URL
+                            updateUserProfile(etName.getText().toString().trim(), etName2.getText().toString().trim(),
+                                    etEmail.getText().toString().trim(), etChannelname.getText().toString().trim(),
+                                    etChannellink.getText().toString().trim(), etinstaid.getText().toString().trim(),
+                                    downloadUrl.toString());
+                        }
+                    }).addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            progressDialog.dismiss();
+                            Toast.makeText(ProfileActivity.this, "Failed to upload image.", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                } else {
+                    progressDialog.dismiss();
+                    Toast.makeText(ProfileActivity.this, "Failed to upload image.", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+    }
     private void updateUserProfile(final String name, String name2, String email, String channelname, String channellink, String instaid, String imageUrl) {
         // Create a user object
         Map<String, Object> user = new HashMap<>();
@@ -383,34 +421,5 @@ public class ProfileActivity extends AppCompatActivity {
     private boolean isValidEmail(String email) {
         String emailPattern = "[a-zA-Z0-9._-]+@[a-zA-Z]+\\.+[a-zA-Z]+";
         return email.matches(emailPattern);
-    }
-    private void uploadNewProfileImage(final String imageFileName) {
-        // Upload the new profile image with the generated filename
-        final StorageReference imageReference = storageReference.child(imageFileName);
-        imageReference.putFile(imageUri)
-                .addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
-                        if (task.isSuccessful()) {
-                            // Image upload successful
-                            imageReference.getDownloadUrl().addOnCompleteListener(new OnCompleteListener<Uri>() {
-                                @Override
-                                public void onComplete(@NonNull Task<Uri> downloadTask) {
-                                    if (downloadTask.isSuccessful()) {
-                                        String imageUrl = downloadTask.getResult().toString();
-                                        // Update user profile with the new image URL
-                                        updateUserProfile(etName.getText().toString().trim(), etName2.getText().toString().trim(), etEmail.getText().toString().trim(), etChannelname.getText().toString().trim(), etChannellink.getText().toString().trim(), etinstaid.getText().toString().trim(), imageUrl);
-                                    } else {
-                                        progressDialog.dismiss();
-                                        Toast.makeText(ProfileActivity.this, "Image upload failed", Toast.LENGTH_SHORT).show();
-                                    }
-                                }
-                            });
-                        } else {
-                            progressDialog.dismiss();
-                            Toast.makeText(ProfileActivity.this, "Image upload failed", Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                });
     }
 }
