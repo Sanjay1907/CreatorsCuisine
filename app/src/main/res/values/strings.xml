@@ -12,4 +12,5 @@
     <string name="resend_otp">Resend OTP</string>
     <string name="verify">Verify</string>
     <string name="resend_otp_in">Resend OTP in %1$d seconds</string>
+    <string name="default_web_client_id">1046743252832-dfpk5bvggra75u2adr5q1qbhm4etqi92.apps.googleusercontent.com</string>
 </resources>

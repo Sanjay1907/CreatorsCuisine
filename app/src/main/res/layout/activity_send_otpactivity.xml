@@ -1,116 +1,80 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:overScrollMode="never"
-    android:scrollbars="none"
+    android:orientation="vertical"
     tools:context=".SendOTPActivity">
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@drawable/login_bkg"
-        android:gravity="center_horizontal"
-        android:layout_marginTop="0dp"
-        android:orientation="vertical">
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:background="@drawable/g_otp"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        android:paddingTop="50dp"
+        android:paddingBottom="20dp">
+
+        <TextView
+            android:id="@+id/dineToDestiny"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Creators Cuisine"
+            android:textColor="@color/white"
+            android:textSize="30sp"
+            android:fontFamily="@font/playpensans"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="210dp" />
+
+        <TextView
+            android:id="@+id/signin"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Sign In"
+            android:textSize="27sp"
+            android:textColor="#ffffff"
+            android:textAlignment="center"
+            android:fontFamily="@font/robotoslab_regular"
+            android:includeFontPadding="false"
+            android:paddingTop="10dp"
+            android:layout_marginTop="0dp"
+            android:shadowColor="#0E0E0E" />
+
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="100dp" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="390dp"
-            android:text="@string/login"
-            android:textColor="@color/colorTextPrimary"
             android:textSize="20sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="50dp"
-            android:layout_marginTop="2dp"
-            android:layout_marginEnd="50dp"
-            android:gravity="center"
-            android:text="@string/we_will_send_you_a_one_time_password_on_this_mobile_number"
+            android:text="Sign in with"
             android:textColor="@color/colorTextSecondary"
-            android:textSize="14sp"/>
+            android:layout_marginTop="30dp"
+            android:layout_gravity="center_horizontal" />
 
-        <TextView
+        <ImageView
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_gravity="center_horizontal"
+            android:src="@drawable/g_logo"
+            android:background="@drawable/rounded_corners"
+            android:layout_marginTop="10dp" />
+
+        <Button
+            android:id="@+id/google_signIn"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="30dp"
-            android:layout_marginTop="50dp"
-            android:layout_marginEnd="30dp"
-            android:gravity="center"
-            android:text="@string/enter_your_mobile_number"
-            android:textColor="@color/colorTextSecondary"
-            android:textSize="14sp"/>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="60dp"
-            android:layout_marginEnd="60dp"
-            android:gravity="center"
-            android:orientation="horizontal">
-
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="40dp"
-                android:gravity="center"
-                android:text="@string/_91"
-                android:textColor="@color/colorTextPrimary"
-                android:textSize="16sp"
-                android:textStyle="bold"/>
-
-            <EditText
-                android:layout_width="wrap_content"
-                android:layout_height="40dp"
-                android:id="@+id/inputmobile"
-                android:background="@null"
-                android:hint="@string/_123456789"
-                android:imeOptions="actionDone"
-                android:importantForAutofill="no"
-                android:inputType="number"
-                android:textColor="@color/colorTextPrimary"
-                android:textSize="16sp"
-                android:textStyle="bold"/>
-        </LinearLayout>
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="2dp"
-            android:layout_marginStart="70dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginEnd="70dp"
-            android:background="@color/colorDivider"/>
-
-        <FrameLayout
-            android:layout_width="387dp"
-            android:layout_height="wrap_content">
-
-            <Button
-                android:id="@+id/buttonGetOTP"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_margin="30dp"
-                android:backgroundTint="@color/darkgreen"
-                android:text="@string/get_otp"
-                android:textColor="@color/white"
-                android:textSize="16sp"
-                android:textStyle="bold" />
-
-            <ProgressBar
-                android:id="@+id/progressbar"
-                android:layout_width="51dp"
-                android:layout_height="25dp"
-                android:layout_gravity="center"
-                android:visibility="gone" />
-
-        </FrameLayout>
-
+            android:text="Sign In with Google"
+            android:textSize="18sp"
+            android:textColor="@color/white"
+            android:backgroundTint="@color/darkgreen"
+            android:elevation="8dp"
+            android:padding="15dp"
+            android:layout_marginTop="40dp" />
 
     </LinearLayout>
 
-</ScrollView>
+</RelativeLayout>

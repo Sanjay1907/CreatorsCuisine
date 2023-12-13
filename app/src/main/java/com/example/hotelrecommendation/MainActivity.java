@@ -59,7 +59,7 @@ public class MainActivity extends AppCompatActivity {
         databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                if (!dataSnapshot.hasChild("name2")) {
+                if (!dataSnapshot.hasChild("phoneNumber")) {
                     progressDialog.dismiss(); // Dismiss the progress dialog when data is fetched
                     Intent profileIntent = new Intent(MainActivity.this, ProfileActivity.class);
                     startActivity(profileIntent);

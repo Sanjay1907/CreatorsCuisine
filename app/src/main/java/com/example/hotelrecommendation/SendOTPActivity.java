@@ -2,94 +2,185 @@ package com.example.hotelrecommendation;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 
+import android.app.Dialog;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.Window;
 import android.widget.Button;
-import android.widget.EditText;
-import android.widget.ProgressBar;
 import android.widget.Toast;
 
-import com.google.firebase.FirebaseException;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthCredential;
+import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.auth.PhoneAuthCredential;
-import com.google.firebase.auth.PhoneAuthProvider;
-import java.util.concurrent.TimeUnit;
+import com.google.firebase.auth.GoogleAuthProvider;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
+import android.Manifest;
+import android.content.pm.PackageManager;
+import androidx.core.app.ActivityCompat;
 
 public class SendOTPActivity extends AppCompatActivity {
-    private static final String TAG = "SendOTPActivity";
+
+    private static final int RC_SIGN_IN = 1;
+    private static final String TAG = "SignInActivity";
+    GoogleSignInClient mGoogleSignInClient;
+    private FirebaseAuth mAuth;
+    Dialog dialog;
+    private static final int LOCATION_PERMISSION_REQUEST_CODE = 101;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // Check if user is already signed in
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser != null) {
             // User is already signed in, open the dashboard activity
-            Log.d(TAG, "User is already signed in. Redirecting to MainActivity.");
+            Log.d(TAG, "User is already signed in, opening MainActivity.");
             startActivity(new Intent(SendOTPActivity.this, MainActivity.class));
             finish();
             return;
         }
         setContentView(R.layout.activity_send_otpactivity);
-
-        final EditText inputmobile = findViewById(R.id.inputmobile);
-        Button getotp = findViewById(R.id.buttonGetOTP);
-        final ProgressBar progressBar = findViewById(R.id.progressbar);
-
-        getotp.setOnClickListener(new View.OnClickListener() {
+        mAuth = FirebaseAuth.getInstance();
+        if (!checkLocationPermission()) {
+            requestLocationPermission();
+        }
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestIdToken(getString(R.string.default_web_client_id))
+                .requestEmail()
+                .build();
+        mGoogleSignInClient = GoogleSignIn.getClient(this,gso);
+        dialog = new Dialog(SendOTPActivity.this);
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.setContentView(R.layout.dialog_wait1);
+        dialog.setCanceledOnTouchOutside(false);
+        Button signInbtn = findViewById(R.id.google_signIn);
+        signInbtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                dialog.show();
+                signIn();
 
-                if (inputmobile.getText().toString().isEmpty()) {
-                    Log.d(TAG, "Mobile number input is empty.");
-                    Toast.makeText(SendOTPActivity.this, "Enter Mobile Number", Toast.LENGTH_SHORT).show();
-                } else if (inputmobile.getText().toString().length() != 10) {
-                    Log.d(TAG, "Invalid mobile number entered.");
-                    Toast.makeText(SendOTPActivity.this, "Enter a valid 10-digit Mobile Number", Toast.LENGTH_SHORT).show();
-                } else {
-                    Log.d(TAG, "Starting phone number verification...");
-                    progressBar.setVisibility(View.VISIBLE);
-                    getotp.setVisibility(View.INVISIBLE);
-
-                    PhoneAuthProvider.getInstance().verifyPhoneNumber(
-                            "+91" + inputmobile.getText().toString(),
-                            60,
-                            TimeUnit.SECONDS,
-                            SendOTPActivity.this,
-                            new PhoneAuthProvider.OnVerificationStateChangedCallbacks(){
-                                @Override
-                                public void onVerificationCompleted(@NonNull PhoneAuthCredential phoneAuthCredential) {
-                                    Log.d(TAG, "Verification completed successfully.");
-                                    progressBar.setVisibility(View.GONE);
-                                    getotp.setVisibility(View.VISIBLE);
-                                }
-
-                                @Override
-                                public void onVerificationFailed(@NonNull FirebaseException e) {
-                                    Log.e(TAG, "Verification failed: " + e.getMessage());
-                                    progressBar.setVisibility(View.GONE);
-                                    getotp.setVisibility(View.VISIBLE);
-                                    Toast.makeText(SendOTPActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
-                                }
-
-                                @Override
-                                public void onCodeSent(@NonNull String verificationId, @NonNull PhoneAuthProvider.ForceResendingToken forceResendingToken) {
-                                    Log.d(TAG, "Verification code sent successfully.");
-                                    progressBar.setVisibility(View.GONE);
-                                    getotp.setVisibility(View.VISIBLE);
-                                    Intent intent = new Intent(getApplicationContext(), VerifyOTPActivity.class);
-                                    intent.putExtra("mobile", inputmobile.getText().toString());
-                                    intent.putExtra("verificationId", verificationId);
-                                    startActivity(intent);
-
-                                }
-                            }
-                    );
-                }
             }
         });
+    }
+
+    private void signIn() {
+        Intent signInIntent = mGoogleSignInClient.getSignInIntent();
+        startActivityForResult(signInIntent, RC_SIGN_IN);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == RC_SIGN_IN) {
+            dialog.show();
+            Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
+            try {
+                GoogleSignInAccount account = task.getResult(ApiException.class);
+                firebaseAuthWithGoogle(account.getIdToken());
+            } catch (ApiException e) {
+                Log.w(TAG, "Google sign in failed", e);
+                dialog.dismiss();
+            }
+        }
+    }
+
+    private void firebaseAuthWithGoogle(String idToken) {
+        AuthCredential credential = GoogleAuthProvider.getCredential(idToken, null);
+        mAuth.signInWithCredential(credential)
+                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        if (task.isSuccessful()) {
+                            Log.d(TAG, "signInWithCredential:success");
+                            FirebaseUser user = mAuth.getCurrentUser();
+                            if (user != null) {
+                                final String userEmail = user.getEmail();
+                                final String userName = user.getDisplayName(); // Retrieve the user's name
+                                final String userId = user.getUid();
+
+                                // Check if the user's data exists in the database
+                                DatabaseReference usersRef = FirebaseDatabase.getInstance().getReference().child("Creators").child(userId);
+                                usersRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                        if (!dataSnapshot.exists()) {
+                                            // User data doesn't exist in the database, save it
+                                            saveUserDataToDatabase(userId, userEmail, userName);
+                                        }
+                                        // Proceed to the main activity
+                                        Intent i = new Intent(SendOTPActivity.this, MainActivity.class);
+                                        startActivity(i);
+                                        finish();
+                                        dialog.dismiss();
+                                    }
+
+                                    @Override
+                                    public void onCancelled(@NonNull DatabaseError databaseError) {
+                                        Log.e(TAG, "onCancelled: " + databaseError.getMessage());
+                                        dialog.dismiss();
+                                        Toast.makeText(SendOTPActivity.this, "Database error", Toast.LENGTH_SHORT).show();
+                                    }
+                                });
+                            }
+                        } else {
+                            dialog.dismiss();
+                            Toast.makeText(SendOTPActivity.this, "Login failed", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+    }
+
+    private void saveUserDataToDatabase(String userId, String email, String name) {
+        DatabaseReference usersRef = FirebaseDatabase.getInstance().getReference().child("Creators");
+        usersRef.child(userId).child("email").setValue(email);
+        usersRef.child(userId).child("name2").setValue(name)
+                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if (task.isSuccessful()) {
+                            Log.d(TAG, "User data saved to database");
+                        } else {
+                            Log.w(TAG, "Failed to save user data to database", task.getException());
+                        }
+                    }
+                });
+    }
+    private boolean checkLocationPermission() {
+        return ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
+    }
+    private void requestLocationPermission() {
+        ActivityCompat.requestPermissions(this,
+                new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                LOCATION_PERMISSION_REQUEST_CODE);
+    }
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Permission granted, you can proceed with your logic
+            } else {
+                // Permission denied, show a message or handle accordingly
+                Toast.makeText(this, "Location permission denied", Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 }
